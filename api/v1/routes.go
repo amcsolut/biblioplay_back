@@ -1,6 +1,9 @@
 package v1
 
 import (
+	cataloghandler "api-backend-infinitrum/api/v1/handlers/catalog"
+	communityhandler "api-backend-infinitrum/api/v1/handlers/community"
+	feedhandler "api-backend-infinitrum/api/v1/handlers/feed"
 	"api-backend-infinitrum/api/v1/handlers/user"
 	"api-backend-infinitrum/api/v1/middleware"
 	"api-backend-infinitrum/config"
@@ -15,6 +18,9 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 
 	// Initialize handlers
 	userHandler := user.NewHandler(db, cfg)
+	communityH := communityhandler.NewHandler(db)
+	catalogH := cataloghandler.NewHandler(db)
+	feedH := feedhandler.NewHandler(db)
 
 	// Auth routes (no middleware required)
 	auth := v1.Group("/auth")
@@ -23,9 +29,7 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		auth.POST("/refresh", userHandler.RefreshToken)
 		auth.POST("/register", userHandler.Register)
 		auth.POST("/google", userHandler.GoogleAuth)
-		auth.POST("/facebook", userHandler.FacebookAuth)
 		auth.POST("/register/google", userHandler.RegisterWithGoogle)
-		auth.POST("/register/facebook", userHandler.RegisterWithFacebook)
 		auth.POST("/forgot-password", userHandler.ForgotPassword)
 		auth.POST("/reset-password", userHandler.ResetPassword)
 	}
@@ -59,6 +63,72 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config) {
 			invitations.GET("/:id", userHandler.GetInvitation)
 			invitations.PUT("/:id/accept", userHandler.AcceptInvitation)
 			invitations.DELETE("/:id", userHandler.DeleteInvitation)
+		}
+
+		// Communities + feed (posts, mídia, comentários, replies)
+		communities := protected.Group("/communities")
+		{
+			// Rotas aninhadas antes de GET /:id (detalhe da comunidade)
+			communities.GET("/:id/posts/:postId/media/:mediaId", feedH.GetPostMedia)
+			communities.GET("/:id/posts/:postId/media", feedH.ListPostMedia)
+			communities.POST("/:id/posts/:postId/media", feedH.CreatePostMedia)
+			communities.PUT("/:id/posts/:postId/media/:mediaId", feedH.UpdatePostMedia)
+			communities.DELETE("/:id/posts/:postId/media/:mediaId", feedH.DeletePostMedia)
+
+			communities.GET("/:id/posts/:postId/comments/:commentId/replies/:replyId", feedH.GetReply)
+			communities.GET("/:id/posts/:postId/comments/:commentId/replies", feedH.ListReplies)
+			communities.POST("/:id/posts/:postId/comments/:commentId/replies", feedH.CreateReply)
+			communities.PUT("/:id/posts/:postId/comments/:commentId/replies/:replyId", feedH.UpdateReply)
+			communities.DELETE("/:id/posts/:postId/comments/:commentId/replies/:replyId", feedH.DeleteReply)
+
+			communities.GET("/:id/posts/:postId/comments/:commentId", feedH.GetComment)
+			communities.GET("/:id/posts/:postId/comments", feedH.ListComments)
+			communities.POST("/:id/posts/:postId/comments", feedH.CreateComment)
+			communities.PUT("/:id/posts/:postId/comments/:commentId", feedH.UpdateComment)
+			communities.DELETE("/:id/posts/:postId/comments/:commentId", feedH.DeleteComment)
+
+			communities.GET("/:id/posts/:postId", feedH.GetPost)
+			communities.PUT("/:id/posts/:postId", feedH.UpdatePost)
+			communities.DELETE("/:id/posts/:postId", feedH.DeletePost)
+			communities.GET("/:id/posts", feedH.ListPosts)
+			communities.POST("/:id/posts", feedH.CreatePost)
+
+			communities.GET("", communityH.List)
+			communities.POST("", communityH.Create)
+			communities.GET("/:id", communityH.Get)
+			communities.PUT("/:id", communityH.Update)
+			communities.DELETE("/:id", communityH.Delete)
+		}
+
+		// Reações (alvo polimórfico)
+		feedRoutes := protected.Group("/feed")
+		{
+			feedRoutes.GET("/reactions", feedH.ListReactions)
+			feedRoutes.POST("/reactions", feedH.UpsertReaction)
+			feedRoutes.DELETE("/reactions/:reactionId", feedH.DeleteReaction)
+		}
+
+		// Catálogo: obras e capítulos (autor = usuário autenticado)
+		books := protected.Group("/catalog/books")
+		{
+			books.GET("", catalogH.ListBooks)
+			books.POST("", catalogH.CreateBook)
+
+			books.GET("/:bookId/ebook-chapters/:chapterId", catalogH.GetEbookChapter)
+			books.GET("/:bookId/ebook-chapters", catalogH.ListEbookChapters)
+			books.POST("/:bookId/ebook-chapters", catalogH.CreateEbookChapter)
+			books.PUT("/:bookId/ebook-chapters/:chapterId", catalogH.UpdateEbookChapter)
+			books.DELETE("/:bookId/ebook-chapters/:chapterId", catalogH.DeleteEbookChapter)
+
+			books.GET("/:bookId/audiobook-chapters/:chapterId", catalogH.GetAudiobookChapter)
+			books.GET("/:bookId/audiobook-chapters", catalogH.ListAudiobookChapters)
+			books.POST("/:bookId/audiobook-chapters", catalogH.CreateAudiobookChapter)
+			books.PUT("/:bookId/audiobook-chapters/:chapterId", catalogH.UpdateAudiobookChapter)
+			books.DELETE("/:bookId/audiobook-chapters/:chapterId", catalogH.DeleteAudiobookChapter)
+
+			books.GET("/:bookId", catalogH.GetBook)
+			books.PUT("/:bookId", catalogH.UpdateBook)
+			books.DELETE("/:bookId", catalogH.DeleteBook)
 		}
 	}
 }

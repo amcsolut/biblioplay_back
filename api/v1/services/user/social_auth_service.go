@@ -376,7 +376,7 @@ func (s *SocialAuthService) getFacebookUserInfo(accessToken string) (*FacebookUs
 }
 
 // RegisterWithGoogle creates a new user account with Google authentication
-func (s *SocialAuthService) RegisterWithGoogle(token string) (*userDTO.UserResponse, error) {
+func (s *SocialAuthService) RegisterWithGoogle(token string, roleLevel *int) (*userDTO.UserResponse, error) {
 	// Try to verify as ID token first, then as access token
 	var userInfo *GoogleUserInfo
 	var err error
@@ -401,7 +401,15 @@ func (s *SocialAuthService) RegisterWithGoogle(token string) (*userDTO.UserRespo
 	}
 
 	provider := "google"
-	
+
+	rl := 1
+	if roleLevel != nil {
+		if *roleLevel != 1 && *roleLevel != 2 {
+			return nil, errors.New("invalid role level: use 1 (usuário) or 2 (autor)")
+		}
+		rl = *roleLevel
+	}
+
 	// Check if user already exists by provider ID
 	if _, err := s.userRepo.GetByProviderID(provider, userInfo.Sub); err == nil {
 		return nil, errors.New("user already exists with this Google account")
@@ -433,7 +441,7 @@ func (s *SocialAuthService) RegisterWithGoogle(token string) (*userDTO.UserRespo
 		AvatarURL:     &avatarURL,
 		IsActive:      true,
 		EmailVerified: userInfo.EmailVerified,
-		RoleLevel:     1, // Role level 1 (Member) for social auth users
+		RoleLevel:     rl,
 		Provider:      &provider,
 		ProviderID:    &userInfo.Sub,
 	}

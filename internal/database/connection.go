@@ -5,6 +5,9 @@ import (
 	"log"
 	"strings"
 
+	"api-backend-infinitrum/internal/models/catalog"
+	"api-backend-infinitrum/internal/models/feed"
+	"api-backend-infinitrum/internal/models/profile"
 	"api-backend-infinitrum/internal/models/user"
 
 	"gorm.io/driver/postgres"
@@ -141,6 +144,45 @@ func AutoMigrateWithURL(db *gorm.DB, databaseURL string) error {
 	// Migrate PasswordReset model
 	if err := migrator.AutoMigrate(&user.PasswordReset{}); err != nil {
 		return fmt.Errorf("failed to migrate PasswordReset: %w", err)
+	}
+
+	// Profile & community (FK users)
+	if err := migrator.AutoMigrate(&profile.ProfileMember{}); err != nil {
+		return fmt.Errorf("failed to migrate ProfileMember: %w", err)
+	}
+	if err := migrator.AutoMigrate(&profile.ProfileAuthor{}); err != nil {
+		return fmt.Errorf("failed to migrate ProfileAuthor: %w", err)
+	}
+	if err := migrator.AutoMigrate(&profile.Community{}); err != nil {
+		return fmt.Errorf("failed to migrate Community: %w", err)
+	}
+
+	// Catálogo (obras + capítulos ebook / audiobook)
+	if err := migrator.AutoMigrate(&catalog.CatalogBook{}); err != nil {
+		return fmt.Errorf("failed to migrate CatalogBook: %w", err)
+	}
+	if err := migrator.AutoMigrate(&catalog.EbookChapter{}); err != nil {
+		return fmt.Errorf("failed to migrate EbookChapter: %w", err)
+	}
+	if err := migrator.AutoMigrate(&catalog.AudiobookChapter{}); err != nil {
+		return fmt.Errorf("failed to migrate AudiobookChapter: %w", err)
+	}
+
+	// Feed da comunidade (posts, mídia, comentários, replies, reações)
+	if err := migrator.AutoMigrate(&feed.CommunityPost{}); err != nil {
+		return fmt.Errorf("failed to migrate CommunityPost: %w", err)
+	}
+	if err := migrator.AutoMigrate(&feed.PostMedia{}); err != nil {
+		return fmt.Errorf("failed to migrate PostMedia: %w", err)
+	}
+	if err := migrator.AutoMigrate(&feed.PostComment{}); err != nil {
+		return fmt.Errorf("failed to migrate PostComment: %w", err)
+	}
+	if err := migrator.AutoMigrate(&feed.CommentReply{}); err != nil {
+		return fmt.Errorf("failed to migrate CommentReply: %w", err)
+	}
+	if err := migrator.AutoMigrate(&feed.Reaction{}); err != nil {
+		return fmt.Errorf("failed to migrate Reaction: %w", err)
 	}
 
 	log.Println("Database migration completed successfully")

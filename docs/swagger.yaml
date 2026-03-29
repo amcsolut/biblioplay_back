@@ -1,5 +1,514 @@
 basePath: /
 definitions:
+  catalog.AudiobookChapterResponse:
+    properties:
+      audio_storage_key:
+        type: string
+      audio_url:
+        type: string
+      book_id:
+        type: string
+      created_at:
+        type: string
+      duration_seconds:
+        type: integer
+      id:
+        type: string
+      position:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  catalog.BookResponse:
+    properties:
+      access_tier:
+        type: string
+      author_user_id:
+        type: string
+      cover_image_url:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      language:
+        type: string
+      price:
+        type: number
+      published_at:
+        type: string
+      slug:
+        type: string
+      status:
+        type: string
+      subtitle:
+        type: string
+      synopsis:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  catalog.CreateAudiobookChapterRequest:
+    properties:
+      audio_storage_key:
+        type: string
+      audio_url:
+        type: string
+      duration_seconds:
+        minimum: 0
+        type: integer
+      position:
+        minimum: 1
+        type: integer
+      title:
+        maxLength: 500
+        minLength: 1
+        type: string
+    required:
+    - position
+    - title
+    type: object
+  catalog.CreateBookRequest:
+    properties:
+      access_tier:
+        type: string
+      cover_image_url:
+        type: string
+      currency:
+        type: string
+      language:
+        type: string
+      price:
+        type: number
+      published_at:
+        description: RFC3339
+        type: string
+      slug:
+        maxLength: 160
+        minLength: 1
+        type: string
+      status:
+        type: string
+      subtitle:
+        type: string
+      synopsis:
+        type: string
+      title:
+        maxLength: 300
+        minLength: 1
+        type: string
+    required:
+    - slug
+    - title
+    type: object
+  catalog.CreateEbookChapterRequest:
+    properties:
+      body_text:
+        type: string
+      content_storage_key:
+        type: string
+      position:
+        minimum: 1
+        type: integer
+      title:
+        maxLength: 500
+        minLength: 1
+        type: string
+    required:
+    - position
+    - title
+    type: object
+  catalog.EbookChapterResponse:
+    properties:
+      body_text:
+        type: string
+      book_id:
+        type: string
+      content_storage_key:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      position:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  catalog.UpdateAudiobookChapterRequest:
+    properties:
+      audio_storage_key:
+        type: string
+      audio_url:
+        type: string
+      duration_seconds:
+        minimum: 0
+        type: integer
+      position:
+        minimum: 1
+        type: integer
+      title:
+        maxLength: 500
+        minLength: 1
+        type: string
+    type: object
+  catalog.UpdateBookRequest:
+    properties:
+      access_tier:
+        type: string
+      cover_image_url:
+        type: string
+      currency:
+        type: string
+      language:
+        type: string
+      price:
+        type: number
+      published_at:
+        type: string
+      slug:
+        maxLength: 160
+        minLength: 1
+        type: string
+      status:
+        type: string
+      subtitle:
+        type: string
+      synopsis:
+        type: string
+      title:
+        maxLength: 300
+        minLength: 1
+        type: string
+    type: object
+  catalog.UpdateEbookChapterRequest:
+    properties:
+      body_text:
+        type: string
+      content_storage_key:
+        type: string
+      position:
+        minimum: 1
+        type: integer
+      title:
+        maxLength: 500
+        minLength: 1
+        type: string
+    type: object
+  community.CommunityResponse:
+    properties:
+      cover_image_url:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      join_policy:
+        type: string
+      name:
+        type: string
+      owner_user_id:
+        type: string
+      post_policy:
+        type: string
+      settings:
+        type: string
+      slug:
+        type: string
+      updated_at:
+        type: string
+      visibility:
+        type: string
+      welcome_message:
+        type: string
+    type: object
+  community.CreateCommunityRequest:
+    properties:
+      cover_image_url:
+        type: string
+      description:
+        type: string
+      is_active:
+        type: boolean
+      join_policy:
+        type: string
+      name:
+        maxLength: 200
+        minLength: 2
+        type: string
+      post_policy:
+        type: string
+      settings:
+        type: string
+      slug:
+        maxLength: 120
+        minLength: 2
+        type: string
+      visibility:
+        type: string
+      welcome_message:
+        type: string
+    required:
+    - name
+    - slug
+    type: object
+  community.UpdateCommunityRequest:
+    properties:
+      cover_image_url:
+        type: string
+      description:
+        type: string
+      is_active:
+        type: boolean
+      join_policy:
+        type: string
+      name:
+        maxLength: 200
+        minLength: 2
+        type: string
+      post_policy:
+        type: string
+      settings:
+        type: string
+      slug:
+        maxLength: 120
+        minLength: 2
+        type: string
+      visibility:
+        type: string
+      welcome_message:
+        type: string
+    type: object
+  feed.CommentResponse:
+    properties:
+      author_user_id:
+        type: string
+      body:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      post_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  feed.CreateCommentRequest:
+    properties:
+      body:
+        minLength: 1
+        type: string
+    required:
+    - body
+    type: object
+  feed.CreatePostMediaRequest:
+    properties:
+      duration_seconds:
+        type: integer
+      height:
+        type: integer
+      media_type:
+        type: string
+      media_url:
+        type: string
+      mime_type:
+        type: string
+      position:
+        type: integer
+      storage_key:
+        type: string
+      thumbnail_key:
+        type: string
+      thumbnail_url:
+        type: string
+      width:
+        type: integer
+    required:
+    - media_type
+    type: object
+  feed.CreatePostRequest:
+    properties:
+      body:
+        type: string
+      pinned:
+        type: boolean
+      status:
+        type: string
+    type: object
+  feed.CreateReplyRequest:
+    properties:
+      body:
+        minLength: 1
+        type: string
+      parent_reply_id:
+        type: string
+    required:
+    - body
+    type: object
+  feed.PostMediaResponse:
+    properties:
+      created_at:
+        type: string
+      duration_seconds:
+        type: integer
+      height:
+        type: integer
+      id:
+        type: string
+      media_type:
+        type: string
+      media_url:
+        type: string
+      mime_type:
+        type: string
+      position:
+        type: integer
+      post_id:
+        type: string
+      storage_key:
+        type: string
+      thumbnail_key:
+        type: string
+      thumbnail_url:
+        type: string
+      updated_at:
+        type: string
+      width:
+        type: integer
+    type: object
+  feed.PostResponse:
+    properties:
+      author_user_id:
+        type: string
+      body:
+        type: string
+      community_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      pinned:
+        type: boolean
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  feed.ReactionResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      target_id:
+        type: string
+      target_type:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  feed.ReplyResponse:
+    properties:
+      author_user_id:
+        type: string
+      body:
+        type: string
+      comment_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      parent_reply_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  feed.UpdateCommentRequest:
+    properties:
+      body:
+        minLength: 1
+        type: string
+    required:
+    - body
+    type: object
+  feed.UpdatePostMediaRequest:
+    properties:
+      duration_seconds:
+        type: integer
+      height:
+        type: integer
+      media_type:
+        type: string
+      media_url:
+        type: string
+      mime_type:
+        type: string
+      position:
+        type: integer
+      storage_key:
+        type: string
+      thumbnail_key:
+        type: string
+      thumbnail_url:
+        type: string
+      width:
+        type: integer
+    type: object
+  feed.UpdatePostRequest:
+    properties:
+      body:
+        type: string
+      pinned:
+        type: boolean
+      status:
+        type: string
+    type: object
+  feed.UpdateReplyRequest:
+    properties:
+      body:
+        minLength: 1
+        type: string
+    required:
+    - body
+    type: object
+  feed.UpsertReactionRequest:
+    properties:
+      target_id:
+        type: string
+      target_type:
+        type: string
+      type:
+        type: string
+    required:
+    - target_id
+    - target_type
+    - type
+    type: object
   user.ChangePasswordRequest:
     properties:
       current_password:
@@ -11,14 +520,6 @@ definitions:
     - current_password
     - new_password
     type: object
-  user.FacebookAuthRequest:
-    properties:
-      token:
-        description: Facebook access token
-        type: string
-    required:
-    - token
-    type: object
   user.ForgotPasswordRequest:
     properties:
       email:
@@ -28,8 +529,12 @@ definitions:
     type: object
   user.GoogleAuthRequest:
     properties:
+      role_level:
+        description: 'Usado em POST /auth/register/google: 1 = usuário, 2 = autor
+          (omitido = 1). Ignorado em /auth/google.'
+        type: integer
       token:
-        description: Google ID token
+        description: Google ID token ou access token
         type: string
     required:
     - token
@@ -87,6 +592,9 @@ definitions:
         type: string
       phone:
         type: string
+      role_level:
+        description: 'Public signup: 1 = ouvinte/usuário, 2 = autor (omitido = 1)'
+        type: integer
     required:
     - email
     - first_name
@@ -168,38 +676,6 @@ info:
   title: API Biblioplay
   version: "1.0"
 paths:
-  /api/v1/auth/facebook:
-    post:
-      consumes:
-      - application/json
-      description: Authenticate user with Facebook access token
-      parameters:
-      - description: Facebook access token
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/user.FacebookAuthRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/user.LoginResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Authenticate with Facebook
-      tags:
-      - auth
   /api/v1/auth/forgot-password:
     post:
       consumes:
@@ -401,38 +877,6 @@ paths:
       summary: Register new user
       tags:
       - auth
-  /api/v1/auth/register/facebook:
-    post:
-      consumes:
-      - application/json
-      description: Create a new user account with Facebook authentication
-      parameters:
-      - description: Facebook access token
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/user.FacebookAuthRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/user.UserResponse'
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "409":
-          description: Conflict
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Register with Facebook
-      tags:
-      - auth
   /api/v1/auth/register/google:
     post:
       consumes:
@@ -498,6 +942,1624 @@ paths:
       summary: Reset password
       tags:
       - auth
+  /api/v1/catalog/books:
+    get:
+      description: Lista todas as obras do usuário autenticado
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/catalog.BookResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar obras do autor
+      tags:
+      - catalog
+    post:
+      consumes:
+      - application/json
+      description: Cria livro para o autor autenticado
+      parameters:
+      - description: Dados da obra
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/catalog.CreateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/catalog.BookResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Criar obra no catálogo
+      tags:
+      - catalog
+  /api/v1/catalog/books/{bookId}:
+    delete:
+      description: Apenas o autor; remove também capítulos em cascata
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Excluir obra
+      tags:
+      - catalog
+    get:
+      description: Apenas o autor da obra
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/catalog.BookResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obter obra por ID
+      tags:
+      - catalog
+    put:
+      consumes:
+      - application/json
+      description: Apenas o autor da obra
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      - description: Campos a atualizar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/catalog.UpdateBookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/catalog.BookResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualizar obra
+      tags:
+      - catalog
+  /api/v1/catalog/books/{bookId}/audiobook-chapters:
+    get:
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/catalog.AudiobookChapterResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar capítulos audiobook
+      tags:
+      - catalog
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      - description: Dados do capítulo
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/catalog.CreateAudiobookChapterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/catalog.AudiobookChapterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Criar capítulo audiobook
+      tags:
+      - catalog
+  /api/v1/catalog/books/{bookId}/audiobook-chapters/{chapterId}:
+    delete:
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      - description: ID do capítulo
+        in: path
+        name: chapterId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Excluir capítulo audiobook
+      tags:
+      - catalog
+    get:
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      - description: ID do capítulo
+        in: path
+        name: chapterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/catalog.AudiobookChapterResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obter capítulo audiobook
+      tags:
+      - catalog
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      - description: ID do capítulo
+        in: path
+        name: chapterId
+        required: true
+        type: string
+      - description: Campos a atualizar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/catalog.UpdateAudiobookChapterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/catalog.AudiobookChapterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualizar capítulo audiobook
+      tags:
+      - catalog
+  /api/v1/catalog/books/{bookId}/ebook-chapters:
+    get:
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/catalog.EbookChapterResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar capítulos ebook
+      tags:
+      - catalog
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      - description: Dados do capítulo
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/catalog.CreateEbookChapterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/catalog.EbookChapterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Criar capítulo ebook
+      tags:
+      - catalog
+  /api/v1/catalog/books/{bookId}/ebook-chapters/{chapterId}:
+    delete:
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      - description: ID do capítulo
+        in: path
+        name: chapterId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Excluir capítulo ebook
+      tags:
+      - catalog
+    get:
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      - description: ID do capítulo
+        in: path
+        name: chapterId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/catalog.EbookChapterResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obter capítulo ebook
+      tags:
+      - catalog
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da obra
+        in: path
+        name: bookId
+        required: true
+        type: string
+      - description: ID do capítulo
+        in: path
+        name: chapterId
+        required: true
+        type: string
+      - description: Campos a atualizar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/catalog.UpdateEbookChapterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/catalog.EbookChapterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualizar capítulo ebook
+      tags:
+      - catalog
+  /api/v1/communities:
+    get:
+      description: Lista comunidades em que o usuário autenticado é dono
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/community.CommunityResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar minhas comunidades
+      tags:
+      - communities
+    post:
+      consumes:
+      - application/json
+      description: Cria a comunidade do autor autenticado (máximo uma por usuário)
+      parameters:
+      - description: Dados da comunidade
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/community.CreateCommunityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/community.CommunityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Criar comunidade
+      tags:
+      - communities
+  /api/v1/communities/{id}:
+    delete:
+      description: Apenas o dono pode excluir
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Excluir comunidade
+      tags:
+      - communities
+    get:
+      description: Dono vê sempre; demais usuários só se a comunidade for pública
+        e ativa
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/community.CommunityResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obter comunidade por ID
+      tags:
+      - communities
+    put:
+      consumes:
+      - application/json
+      description: Apenas o dono pode atualizar
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Campos a atualizar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/community.UpdateCommunityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/community.CommunityResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualizar comunidade
+      tags:
+      - communities
+  /api/v1/communities/{id}/posts:
+    get:
+      description: Lista posts publicados (paginação page/limit)
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 1
+        description: Página
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Itens por página
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/feed.PostResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar posts do feed da comunidade
+      tags:
+      - feed
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Corpo do post
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feed.CreatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/feed.PostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Criar post no feed
+      tags:
+      - feed
+  /api/v1/communities/{id}/posts/{postId}:
+    delete:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Excluir post (soft delete, apenas autor)
+      tags:
+      - feed
+    get:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feed.PostResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obter post por ID
+      tags:
+      - feed
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: Campos a atualizar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feed.UpdatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feed.PostResponse'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualizar post (apenas autor)
+      tags:
+      - feed
+  /api/v1/communities/{id}/posts/{postId}/comments:
+    get:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/feed.CommentResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar comentários do post
+      tags:
+      - feed
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: Texto do comentário
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feed.CreateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/feed.CommentResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Criar comentário
+      tags:
+      - feed
+  /api/v1/communities/{id}/posts/{postId}/comments/{commentId}:
+    delete:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID do comentário
+        in: path
+        name: commentId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Excluir comentário (apenas autor)
+      tags:
+      - feed
+    get:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID do comentário
+        in: path
+        name: commentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feed.CommentResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obter comentário por ID
+      tags:
+      - feed
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID do comentário
+        in: path
+        name: commentId
+        required: true
+        type: string
+      - description: Novo texto
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feed.UpdateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feed.CommentResponse'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualizar comentário (apenas autor)
+      tags:
+      - feed
+  /api/v1/communities/{id}/posts/{postId}/comments/{commentId}/replies:
+    get:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID do comentário
+        in: path
+        name: commentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/feed.ReplyResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar respostas do comentário
+      tags:
+      - feed
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID do comentário
+        in: path
+        name: commentId
+        required: true
+        type: string
+      - description: Texto e reply pai opcional
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feed.CreateReplyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/feed.ReplyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Criar resposta (thread opcional via parent_reply_id)
+      tags:
+      - feed
+  /api/v1/communities/{id}/posts/{postId}/comments/{commentId}/replies/{replyId}:
+    delete:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID do comentário
+        in: path
+        name: commentId
+        required: true
+        type: string
+      - description: ID da resposta
+        in: path
+        name: replyId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Excluir resposta (apenas autor)
+      tags:
+      - feed
+    get:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID do comentário
+        in: path
+        name: commentId
+        required: true
+        type: string
+      - description: ID da resposta
+        in: path
+        name: replyId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feed.ReplyResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obter resposta por ID
+      tags:
+      - feed
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID do comentário
+        in: path
+        name: commentId
+        required: true
+        type: string
+      - description: ID da resposta
+        in: path
+        name: replyId
+        required: true
+        type: string
+      - description: Novo texto
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feed.UpdateReplyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feed.ReplyResponse'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualizar resposta (apenas autor)
+      tags:
+      - feed
+  /api/v1/communities/{id}/posts/{postId}/media:
+    get:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/feed.PostMediaResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar mídias do post
+      tags:
+      - feed
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: Dados da mídia
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feed.CreatePostMediaRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/feed.PostMediaResponse'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Adicionar mídia ao post (apenas autor do post)
+      tags:
+      - feed
+  /api/v1/communities/{id}/posts/{postId}/media/{mediaId}:
+    delete:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID da mídia
+        in: path
+        name: mediaId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Excluir mídia (apenas autor do post)
+      tags:
+      - feed
+    get:
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID da mídia
+        in: path
+        name: mediaId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feed.PostMediaResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obter mídia por ID
+      tags:
+      - feed
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da comunidade
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID do post
+        in: path
+        name: postId
+        required: true
+        type: string
+      - description: ID da mídia
+        in: path
+        name: mediaId
+        required: true
+        type: string
+      - description: Campos a atualizar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feed.UpdatePostMediaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feed.PostMediaResponse'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualizar mídia (apenas autor do post)
+      tags:
+      - feed
+  /api/v1/feed/reactions:
+    get:
+      description: 'Query: target_type (post|comment|reply) e target_id'
+      parameters:
+      - description: Tipo do alvo
+        enum:
+        - post
+        - comment
+        - reply
+        in: query
+        name: target_type
+        required: true
+        type: string
+      - description: ID do alvo
+        in: query
+        name: target_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/feed.ReactionResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar reações de um alvo
+      tags:
+      - feed
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Alvo e tipo
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feed.UpsertReactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feed.ReactionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Criar ou atualizar reação do usuário (upsert)
+      tags:
+      - feed
+  /api/v1/feed/reactions/{reactionId}:
+    delete:
+      parameters:
+      - description: ID da reação
+        in: path
+        name: reactionId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remover reação (apenas quem criou)
+      tags:
+      - feed
   /api/v1/users:
     get:
       consumes:

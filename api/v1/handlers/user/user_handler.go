@@ -400,32 +400,6 @@ func (h *Handler) GoogleAuth(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary Authenticate with Facebook
-// @Description Authenticate user with Facebook access token
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body userDTO.FacebookAuthRequest true "Facebook access token"
-// @Success 200 {object} userDTO.LoginResponse
-// @Failure 400 {object} map[string]interface{}
-// @Failure 401 {object} map[string]interface{}
-// @Router /api/v1/auth/facebook [post]
-func (h *Handler) FacebookAuth(c *gin.Context) {
-	var req userDTO.FacebookAuthRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	response, err := h.socialAuthService.AuthenticateWithFacebook(req.Token)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, response)
-}
-
 // @Summary Register with Google
 // @Description Create a new user account with Google authentication
 // @Tags auth
@@ -443,39 +417,9 @@ func (h *Handler) RegisterWithGoogle(c *gin.Context) {
 		return
 	}
 
-	userResponse, err := h.socialAuthService.RegisterWithGoogle(req.Token)
+	userResponse, err := h.socialAuthService.RegisterWithGoogle(req.Token, req.RoleLevel)
 	if err != nil {
 		if err.Error() == "user already exists with this Google account" || err.Error() == "email already registered" {
-			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusCreated, userResponse)
-}
-
-// @Summary Register with Facebook
-// @Description Create a new user account with Facebook authentication
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body userDTO.FacebookAuthRequest true "Facebook access token"
-// @Success 201 {object} userDTO.UserResponse
-// @Failure 400 {object} map[string]interface{}
-// @Failure 409 {object} map[string]interface{}
-// @Router /api/v1/auth/register/facebook [post]
-func (h *Handler) RegisterWithFacebook(c *gin.Context) {
-	var req userDTO.FacebookAuthRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	userResponse, err := h.socialAuthService.RegisterWithFacebook(req.Token)
-	if err != nil {
-		if err.Error() == "user already exists with this Facebook account" || err.Error() == "email already registered" {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 			return
 		}

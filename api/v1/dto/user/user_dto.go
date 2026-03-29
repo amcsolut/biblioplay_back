@@ -17,6 +17,8 @@ type RegisterRequest struct {
 	LastName      string `json:"last_name" binding:"required,min=2"`
 	Phone         *string `json:"phone"`
 	EmailVerified bool   `json:"email_verified"`
+	// Public signup: 1 = ouvinte/usuário, 2 = autor (omitido = 1)
+	RoleLevel *int `json:"role_level"`
 }
 
 type UpdateUserRequest struct {
@@ -53,7 +55,9 @@ type SocialAuthRequest struct {
 }
 
 type GoogleAuthRequest struct {
-	Token string `json:"token" binding:"required"` // Google ID token
+	Token string `json:"token" binding:"required"` // Google ID token ou access token
+	// Usado em POST /auth/register/google: 1 = usuário, 2 = autor (omitido = 1). Ignorado em /auth/google.
+	RoleLevel *int `json:"role_level"`
 }
 
 type FacebookAuthRequest struct {

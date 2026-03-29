@@ -81,6 +81,13 @@ func (s *Service) Register(req *userDTO.RegisterRequest) (*userDTO.UserResponse,
 	}
 
 	passwordHashStr := string(hashedPassword)
+	roleLevel := 1
+	if req.RoleLevel != nil {
+		if *req.RoleLevel != 1 && *req.RoleLevel != 2 {
+			return nil, errors.New("invalid role level: use 1 (usuário) or 2 (autor)")
+		}
+		roleLevel = *req.RoleLevel
+	}
 	// Create user entity
 	userEntity := &userModel.User{
 		ID:            uuid.New().String(),
@@ -91,7 +98,7 @@ func (s *Service) Register(req *userDTO.RegisterRequest) (*userDTO.UserResponse,
 		Phone:         req.Phone,
 		IsActive:      true,
 		EmailVerified: req.EmailVerified,
-		RoleLevel:     1, // Role level 1 (Member) for new registrations
+		RoleLevel:     roleLevel,
 	}
 
 	// Save user
