@@ -1,0 +1,31 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: biblioplay_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-biblioplay_db}
+      POSTGRES_USER: ${POSTGRES_USER:-biblioplay_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-biblioplay_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - biblioplay_network
+
+  # Redis (optional, for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: biblioplay_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - biblioplay_network
+
+volumes:
+  postgres_data:
+
+networks:
+  biblioplay_network:
+    driver: bridge
