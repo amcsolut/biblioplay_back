@@ -20,6 +20,15 @@ func NewHandler(db *gorm.DB) *Handler {
 	return &Handler{svc: libsvc.NewService(db)}
 }
 
+// @Summary Listar minha biblioteca
+// @Description Itens adquiridos ou concedidos ao usuário autenticado
+// @Tags library
+// @Produce json
+// @Success 200 {array} librarydto.LibraryItemResponse
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/me/library [get]
 func (h *Handler) ListMyLibrary(c *gin.Context) {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {
@@ -34,6 +43,16 @@ func (h *Handler) ListMyLibrary(c *gin.Context) {
 	c.JSON(http.StatusOK, list)
 }
 
+// @Summary Adicionar obra ou coleção gratuita à biblioteca
+// @Tags library
+// @Accept json
+// @Produce json
+// @Param request body librarydto.AddLibraryItemRequest true "Tipo e ID do item"
+// @Success 201 {object} librarydto.LibraryItemResponse
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/me/library [post]
 func (h *Handler) AddFreeToLibrary(c *gin.Context) {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {
@@ -53,6 +72,17 @@ func (h *Handler) AddFreeToLibrary(c *gin.Context) {
 	c.JSON(http.StatusCreated, res)
 }
 
+// @Summary Remover item gratuito da biblioteca
+// @Description Apenas entradas gratuitas adicionadas pelo próprio usuário
+// @Tags library
+// @Param itemType path string true "book ou collection"
+// @Param itemId path string true "ID do item"
+// @Success 204 "Sem corpo"
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/me/library/{itemType}/{itemId} [delete]
 func (h *Handler) RemoveFromLibrary(c *gin.Context) {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {
@@ -72,6 +102,17 @@ func (h *Handler) RemoveFromLibrary(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// @Summary Conceder acesso a leitor (autor)
+// @Description Apenas usuários com papel autor
+// @Tags library
+// @Accept json
+// @Produce json
+// @Param request body librarydto.AuthorGrantRequest true "Leitor e item"
+// @Success 201 {object} librarydto.LibraryItemResponse
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/authors/grants [post]
 func (h *Handler) AuthorGrant(c *gin.Context) {
 	authorID, ok := middleware.GetCurrentUserID(c)
 	if !ok {

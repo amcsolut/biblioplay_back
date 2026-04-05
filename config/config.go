@@ -23,6 +23,8 @@ type Config struct {
 	GoogleClientSecret string
 	FacebookAppID      string
 	FacebookAppSecret  string
+	// UploadsPath: diretório local (dev) ou volume montado (produção) para arquivos servidos em /uploads
+	UploadsPath string
 }
 
 func Load() *Config {
@@ -47,6 +49,7 @@ func Load() *Config {
 		GoogleClientSecret:      getEnv("GOOGLE_CLIENT_SECRET", ""),
 		FacebookAppID:           getEnv("FACEBOOK_APP_ID", ""),
 		FacebookAppSecret:       getEnv("FACEBOOK_APP_SECRET", ""),
+		UploadsPath:             getEnv("UPLOADS_PATH", "./uploads"),
 	}
 }
 

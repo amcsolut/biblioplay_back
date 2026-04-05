@@ -509,6 +509,59 @@
                 }
             }
         },
+        "/api/v1/authors/grants": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Apenas usuários com papel autor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "library"
+                ],
+                "summary": "Conceder acesso a leitor (autor)",
+                "parameters": [
+                    {
+                        "description": "Leitor e item",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/library.AuthorGrantRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/library.LibraryItemResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/catalog/books": {
             "get": {
                 "security": [
@@ -1373,6 +1426,328 @@
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/catalog/collections": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Listar coleções do autor",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/catalog.CollectionResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Agrupa obras do autor autenticado",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Criar coleção no catálogo",
+                "parameters": [
+                    {
+                        "description": "Dados da coleção",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/catalog.CreateCollectionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/catalog.CollectionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/catalog/collections/{collectionId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Obter coleção por ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da coleção",
+                        "name": "collectionId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/catalog.CollectionResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Atualizar coleção",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da coleção",
+                        "name": "collectionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Campos a atualizar",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/catalog.UpdateCollectionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/catalog.CollectionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Excluir coleção",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da coleção",
+                        "name": "collectionId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Sem corpo"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/catalog/collections/{collectionId}/books": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "catalog"
+                ],
+                "summary": "Substituir livros da coleção (ordem e rótulos de volume)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da coleção",
+                        "name": "collectionId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "IDs dos livros na ordem desejada",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/catalog.ReplaceCollectionBooksRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/catalog.CollectionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2978,6 +3353,359 @@
                 }
             }
         },
+        "/api/v1/invitations": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reservado — ainda não implementado",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "invitations"
+                ],
+                "summary": "Listar convites",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reservado — ainda não implementado",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "invitations"
+                ],
+                "summary": "Criar convite",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/invitations/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reservado — ainda não implementado",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "invitations"
+                ],
+                "summary": "Obter convite por ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do convite",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reservado — ainda não implementado",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "invitations"
+                ],
+                "summary": "Excluir convite",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do convite",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/invitations/{id}/accept": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reservado — ainda não implementado",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "invitations"
+                ],
+                "summary": "Aceitar convite",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do convite",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/me/library": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Itens adquiridos ou concedidos ao usuário autenticado",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "library"
+                ],
+                "summary": "Listar minha biblioteca",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/library.LibraryItemResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "library"
+                ],
+                "summary": "Adicionar obra ou coleção gratuita à biblioteca",
+                "parameters": [
+                    {
+                        "description": "Tipo e ID do item",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/library.AddLibraryItemRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/library.LibraryItemResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/me/library/{itemType}/{itemId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Apenas entradas gratuitas adicionadas pelo próprio usuário",
+                "tags": [
+                    "library"
+                ],
+                "summary": "Remover item gratuito da biblioteca",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "book ou collection",
+                        "name": "itemType",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID do item",
+                        "name": "itemId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Sem corpo"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/purchases": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "commerce"
+                ],
+                "summary": "Registrar compra (itens pagos)",
+                "parameters": [
+                    {
+                        "description": "Linhas da compra (obras ou coleções)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/commerce.CreatePurchaseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/commerce.PurchaseResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/users": {
             "get": {
                 "security": [
@@ -3304,6 +4032,82 @@
                 }
             }
         },
+        "catalog.CollectionBookItemResponse": {
+            "type": "object",
+            "properties": {
+                "book": {
+                    "$ref": "#/definitions/catalog.BookResponse"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "volume_label": {
+                    "type": "string"
+                }
+            }
+        },
+        "catalog.CollectionResponse": {
+            "type": "object",
+            "properties": {
+                "access_tier": {
+                    "type": "string"
+                },
+                "author_user_id": {
+                    "type": "string"
+                },
+                "books": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/catalog.CollectionBookItemResponse"
+                    }
+                },
+                "cover_image_url": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "catalog.CreateAudiobookChapterRequest": {
             "type": "object",
             "required": [
@@ -3379,6 +4183,68 @@
                 }
             }
         },
+        "catalog.CreateCollectionRequest": {
+            "type": "object",
+            "required": [
+                "slug",
+                "title"
+            ],
+            "properties": {
+                "access_tier": {
+                    "type": "string"
+                },
+                "book_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "cover_image_url": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "language": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string",
+                    "maxLength": 160,
+                    "minLength": 1
+                },
+                "status": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 300,
+                    "minLength": 1
+                },
+                "volume_labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "catalog.CreateEbookChapterRequest": {
             "type": "object",
             "required": [
@@ -3429,6 +4295,24 @@
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "catalog.ReplaceCollectionBooksRequest": {
+            "type": "object",
+            "properties": {
+                "book_ids": {
+                    "description": "Ordem define a sequência na coleção; lista vazia remove todos os livros.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "volume_labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -3498,6 +4382,52 @@
                 }
             }
         },
+        "catalog.UpdateCollectionRequest": {
+            "type": "object",
+            "properties": {
+                "access_tier": {
+                    "type": "string"
+                },
+                "cover_image_url": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "language": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string",
+                    "maxLength": 160,
+                    "minLength": 1
+                },
+                "status": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 300,
+                    "minLength": 1
+                }
+            }
+        },
         "catalog.UpdateEbookChapterRequest": {
             "type": "object",
             "properties": {
@@ -3515,6 +4445,93 @@
                     "type": "string",
                     "maxLength": 500,
                     "minLength": 1
+                }
+            }
+        },
+        "commerce.CreatePurchaseRequest": {
+            "type": "object",
+            "required": [
+                "lines"
+            ],
+            "properties": {
+                "lines": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/commerce.PurchaseLineRequest"
+                    }
+                }
+            }
+        },
+        "commerce.PurchaseLineRequest": {
+            "type": "object",
+            "required": [
+                "item_id",
+                "item_type"
+            ],
+            "properties": {
+                "item_id": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "item_type": {
+                    "type": "string",
+                    "enum": [
+                        "book",
+                        "collection"
+                    ]
+                }
+            }
+        },
+        "commerce.PurchaseLineResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "item_type": {
+                    "type": "string"
+                },
+                "title_snapshot": {
+                    "type": "string"
+                },
+                "unit_price": {
+                    "type": "number"
+                }
+            }
+        },
+        "commerce.PurchaseResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lines": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/commerce.PurchaseLineResponse"
+                    }
+                },
+                "paid_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "total_amount": {
+                    "type": "number"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -3974,6 +4991,141 @@
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "library.AddLibraryItemRequest": {
+            "type": "object",
+            "required": [
+                "item_id",
+                "item_type"
+            ],
+            "properties": {
+                "item_id": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "item_type": {
+                    "type": "string",
+                    "enum": [
+                        "book",
+                        "collection"
+                    ]
+                }
+            }
+        },
+        "library.AuthorGrantRequest": {
+            "type": "object",
+            "required": [
+                "item_id",
+                "item_type",
+                "reader_user_id"
+            ],
+            "properties": {
+                "item_id": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "item_type": {
+                    "type": "string",
+                    "enum": [
+                        "book",
+                        "collection"
+                    ]
+                },
+                "reader_user_id": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "library.BookSummary": {
+            "type": "object",
+            "properties": {
+                "access_tier": {
+                    "type": "string"
+                },
+                "cover_image_url": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "library.CollectionSummary": {
+            "type": "object",
+            "properties": {
+                "access_tier": {
+                    "type": "string"
+                },
+                "cover_image_url": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "library.LibraryItemResponse": {
+            "type": "object",
+            "properties": {
+                "book": {
+                    "$ref": "#/definitions/library.BookSummary"
+                },
+                "collection": {
+                    "$ref": "#/definitions/library.CollectionSummary"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "granted_by_user_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "item_id": {
+                    "type": "string"
+                },
+                "item_type": {
+                    "type": "string"
+                },
+                "purchase_id": {
+                    "type": "string"
+                },
+                "source": {
                     "type": "string"
                 }
             }

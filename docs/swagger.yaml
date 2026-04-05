@@ -54,6 +54,56 @@ definitions:
       updated_at:
         type: string
     type: object
+  catalog.CollectionBookItemResponse:
+    properties:
+      book:
+        $ref: '#/definitions/catalog.BookResponse'
+      id:
+        type: string
+      position:
+        type: integer
+      volume_label:
+        type: string
+    type: object
+  catalog.CollectionResponse:
+    properties:
+      access_tier:
+        type: string
+      author_user_id:
+        type: string
+      books:
+        items:
+          $ref: '#/definitions/catalog.CollectionBookItemResponse'
+        type: array
+      cover_image_url:
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      kind:
+        type: string
+      language:
+        type: string
+      price:
+        type: number
+      published_at:
+        type: string
+      slug:
+        type: string
+      status:
+        type: string
+      subtitle:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
   catalog.CreateAudiobookChapterRequest:
     properties:
       audio_storage_key:
@@ -107,6 +157,49 @@ definitions:
     - slug
     - title
     type: object
+  catalog.CreateCollectionRequest:
+    properties:
+      access_tier:
+        type: string
+      book_ids:
+        items:
+          type: string
+        type: array
+      cover_image_url:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      kind:
+        maxLength: 64
+        type: string
+      language:
+        type: string
+      price:
+        type: number
+      published_at:
+        type: string
+      slug:
+        maxLength: 160
+        minLength: 1
+        type: string
+      status:
+        type: string
+      subtitle:
+        type: string
+      title:
+        maxLength: 300
+        minLength: 1
+        type: string
+      volume_labels:
+        items:
+          type: string
+        type: array
+    required:
+    - slug
+    - title
+    type: object
   catalog.CreateEbookChapterRequest:
     properties:
       body_text:
@@ -142,6 +235,19 @@ definitions:
         type: string
       updated_at:
         type: string
+    type: object
+  catalog.ReplaceCollectionBooksRequest:
+    properties:
+      book_ids:
+        description: Ordem define a sequência na coleção; lista vazia remove todos
+          os livros.
+        items:
+          type: string
+        type: array
+      volume_labels:
+        items:
+          type: string
+        type: array
     type: object
   catalog.UpdateAudiobookChapterRequest:
     properties:
@@ -189,6 +295,38 @@ definitions:
         minLength: 1
         type: string
     type: object
+  catalog.UpdateCollectionRequest:
+    properties:
+      access_tier:
+        type: string
+      cover_image_url:
+        type: string
+      currency:
+        type: string
+      description:
+        type: string
+      kind:
+        maxLength: 64
+        type: string
+      language:
+        type: string
+      price:
+        type: number
+      published_at:
+        type: string
+      slug:
+        maxLength: 160
+        minLength: 1
+        type: string
+      status:
+        type: string
+      subtitle:
+        type: string
+      title:
+        maxLength: 300
+        minLength: 1
+        type: string
+    type: object
   catalog.UpdateEbookChapterRequest:
     properties:
       body_text:
@@ -201,6 +339,64 @@ definitions:
       title:
         maxLength: 500
         minLength: 1
+        type: string
+    type: object
+  commerce.CreatePurchaseRequest:
+    properties:
+      lines:
+        items:
+          $ref: '#/definitions/commerce.PurchaseLineRequest'
+        minItems: 1
+        type: array
+    required:
+    - lines
+    type: object
+  commerce.PurchaseLineRequest:
+    properties:
+      item_id:
+        minLength: 1
+        type: string
+      item_type:
+        enum:
+        - book
+        - collection
+        type: string
+    required:
+    - item_id
+    - item_type
+    type: object
+  commerce.PurchaseLineResponse:
+    properties:
+      id:
+        type: string
+      item_id:
+        type: string
+      item_type:
+        type: string
+      title_snapshot:
+        type: string
+      unit_price:
+        type: number
+    type: object
+  commerce.PurchaseResponse:
+    properties:
+      created_at:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      lines:
+        items:
+          $ref: '#/definitions/commerce.PurchaseLineResponse'
+        type: array
+      paid_at:
+        type: string
+      status:
+        type: string
+      total_amount:
+        type: number
+      user_id:
         type: string
     type: object
   community.CommunityResponse:
@@ -508,6 +704,97 @@ definitions:
     - target_id
     - target_type
     - type
+    type: object
+  library.AddLibraryItemRequest:
+    properties:
+      item_id:
+        minLength: 1
+        type: string
+      item_type:
+        enum:
+        - book
+        - collection
+        type: string
+    required:
+    - item_id
+    - item_type
+    type: object
+  library.AuthorGrantRequest:
+    properties:
+      item_id:
+        minLength: 1
+        type: string
+      item_type:
+        enum:
+        - book
+        - collection
+        type: string
+      reader_user_id:
+        minLength: 1
+        type: string
+    required:
+    - item_id
+    - item_type
+    - reader_user_id
+    type: object
+  library.BookSummary:
+    properties:
+      access_tier:
+        type: string
+      cover_image_url:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      price:
+        type: number
+      slug:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  library.CollectionSummary:
+    properties:
+      access_tier:
+        type: string
+      cover_image_url:
+        type: string
+      currency:
+        type: string
+      id:
+        type: string
+      price:
+        type: number
+      slug:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  library.LibraryItemResponse:
+    properties:
+      book:
+        $ref: '#/definitions/library.BookSummary'
+      collection:
+        $ref: '#/definitions/library.CollectionSummary'
+      created_at:
+        type: string
+      granted_by_user_id:
+        type: string
+      id:
+        type: string
+      item_id:
+        type: string
+      item_type:
+        type: string
+      purchase_id:
+        type: string
+      source:
+        type: string
     type: object
   user.ChangePasswordRequest:
     properties:
@@ -1053,6 +1340,40 @@ paths:
       summary: Reset password
       tags:
       - auth
+  /api/v1/authors/grants:
+    post:
+      consumes:
+      - application/json
+      description: Apenas usuários com papel autor
+      parameters:
+      - description: Leitor e item
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/library.AuthorGrantRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/library.LibraryItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Conceder acesso a leitor (autor)
+      tags:
+      - library
   /api/v1/catalog/books:
     get:
       description: Lista todas as obras do usuário autenticado
@@ -1623,6 +1944,215 @@ paths:
       security:
       - BearerAuth: []
       summary: Atualizar capítulo ebook
+      tags:
+      - catalog
+  /api/v1/catalog/collections:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/catalog.CollectionResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar coleções do autor
+      tags:
+      - catalog
+    post:
+      consumes:
+      - application/json
+      description: Agrupa obras do autor autenticado
+      parameters:
+      - description: Dados da coleção
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/catalog.CreateCollectionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/catalog.CollectionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Criar coleção no catálogo
+      tags:
+      - catalog
+  /api/v1/catalog/collections/{collectionId}:
+    delete:
+      parameters:
+      - description: ID da coleção
+        in: path
+        name: collectionId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Excluir coleção
+      tags:
+      - catalog
+    get:
+      parameters:
+      - description: ID da coleção
+        in: path
+        name: collectionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/catalog.CollectionResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obter coleção por ID
+      tags:
+      - catalog
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da coleção
+        in: path
+        name: collectionId
+        required: true
+        type: string
+      - description: Campos a atualizar
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/catalog.UpdateCollectionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/catalog.CollectionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Atualizar coleção
+      tags:
+      - catalog
+  /api/v1/catalog/collections/{collectionId}/books:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID da coleção
+        in: path
+        name: collectionId
+        required: true
+        type: string
+      - description: IDs dos livros na ordem desejada
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/catalog.ReplaceCollectionBooksRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/catalog.CollectionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Substituir livros da coleção (ordem e rótulos de volume)
       tags:
       - catalog
   /api/v1/communities:
@@ -2671,6 +3201,231 @@ paths:
       summary: Remover reação (apenas quem criou)
       tags:
       - feed
+  /api/v1/invitations:
+    get:
+      description: Reservado — ainda não implementado
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar convites
+      tags:
+      - invitations
+    post:
+      description: Reservado — ainda não implementado
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Criar convite
+      tags:
+      - invitations
+  /api/v1/invitations/{id}:
+    delete:
+      description: Reservado — ainda não implementado
+      parameters:
+      - description: ID do convite
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Excluir convite
+      tags:
+      - invitations
+    get:
+      description: Reservado — ainda não implementado
+      parameters:
+      - description: ID do convite
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obter convite por ID
+      tags:
+      - invitations
+  /api/v1/invitations/{id}/accept:
+    put:
+      description: Reservado — ainda não implementado
+      parameters:
+      - description: ID do convite
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Aceitar convite
+      tags:
+      - invitations
+  /api/v1/me/library:
+    get:
+      description: Itens adquiridos ou concedidos ao usuário autenticado
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/library.LibraryItemResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar minha biblioteca
+      tags:
+      - library
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tipo e ID do item
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/library.AddLibraryItemRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/library.LibraryItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Adicionar obra ou coleção gratuita à biblioteca
+      tags:
+      - library
+  /api/v1/me/library/{itemType}/{itemId}:
+    delete:
+      description: Apenas entradas gratuitas adicionadas pelo próprio usuário
+      parameters:
+      - description: book ou collection
+        in: path
+        name: itemType
+        required: true
+        type: string
+      - description: ID do item
+        in: path
+        name: itemId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remover item gratuito da biblioteca
+      tags:
+      - library
+  /api/v1/purchases:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Linhas da compra (obras ou coleções)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/commerce.CreatePurchaseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/commerce.PurchaseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Registrar compra (itens pagos)
+      tags:
+      - commerce
   /api/v1/users:
     get:
       consumes:

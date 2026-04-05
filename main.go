@@ -27,6 +27,7 @@ import (
 	v1 "api-backend-infinitrum/api/v1"
 	"api-backend-infinitrum/config"
 	"api-backend-infinitrum/internal/database"
+	"api-backend-infinitrum/internal/staticfiles"
 
 	_ "api-backend-infinitrum/docs" // swagger docs
 
@@ -68,6 +69,8 @@ func main() {
 	corsConfig.AllowHeaders = []string{"*"}
 	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	router.Use(cors.New(corsConfig))
+
+	staticfiles.Mount(router, cfg.UploadsPath)
 
 	// Swagger route
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

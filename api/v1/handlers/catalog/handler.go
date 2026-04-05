@@ -502,6 +502,17 @@ func (h *Handler) DeleteAudiobookChapter(c *gin.Context) {
 
 // --- Coleções ---
 
+// @Summary Criar coleção no catálogo
+// @Description Agrupa obras do autor autenticado
+// @Tags catalog
+// @Accept json
+// @Produce json
+// @Param request body catalogDTO.CreateCollectionRequest true "Dados da coleção"
+// @Success 201 {object} catalogDTO.CollectionResponse
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/catalog/collections [post]
 func (h *Handler) CreateCollection(c *gin.Context) {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {
@@ -521,6 +532,14 @@ func (h *Handler) CreateCollection(c *gin.Context) {
 	c.JSON(http.StatusCreated, res)
 }
 
+// @Summary Listar coleções do autor
+// @Tags catalog
+// @Produce json
+// @Success 200 {array} catalogDTO.CollectionResponse
+// @Failure 401 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/catalog/collections [get]
 func (h *Handler) ListCollections(c *gin.Context) {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {
@@ -535,6 +554,16 @@ func (h *Handler) ListCollections(c *gin.Context) {
 	c.JSON(http.StatusOK, list)
 }
 
+// @Summary Obter coleção por ID
+// @Tags catalog
+// @Produce json
+// @Param collectionId path string true "ID da coleção"
+// @Success 200 {object} catalogDTO.CollectionResponse
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/catalog/collections/{collectionId} [get]
 func (h *Handler) GetCollection(c *gin.Context) {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {
@@ -554,6 +583,18 @@ func (h *Handler) GetCollection(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// @Summary Atualizar coleção
+// @Tags catalog
+// @Accept json
+// @Produce json
+// @Param collectionId path string true "ID da coleção"
+// @Param request body catalogDTO.UpdateCollectionRequest true "Campos a atualizar"
+// @Success 200 {object} catalogDTO.CollectionResponse
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/catalog/collections/{collectionId} [put]
 func (h *Handler) UpdateCollection(c *gin.Context) {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {
@@ -578,6 +619,15 @@ func (h *Handler) UpdateCollection(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// @Summary Excluir coleção
+// @Tags catalog
+// @Param collectionId path string true "ID da coleção"
+// @Success 204 "Sem corpo"
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/catalog/collections/{collectionId} [delete]
 func (h *Handler) DeleteCollection(c *gin.Context) {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {
@@ -596,6 +646,18 @@ func (h *Handler) DeleteCollection(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// @Summary Substituir livros da coleção (ordem e rótulos de volume)
+// @Tags catalog
+// @Accept json
+// @Produce json
+// @Param collectionId path string true "ID da coleção"
+// @Param request body catalogDTO.ReplaceCollectionBooksRequest true "IDs dos livros na ordem desejada"
+// @Success 200 {object} catalogDTO.CollectionResponse
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/catalog/collections/{collectionId}/books [put]
 func (h *Handler) ReplaceCollectionBooks(c *gin.Context) {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {

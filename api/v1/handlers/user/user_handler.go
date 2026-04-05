@@ -326,19 +326,60 @@ func (h *Handler) ChangePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
 }
 
-// Placeholder methods for invitation handling
+// @Summary Listar convites
+// @Description Reservado — ainda não implementado
+// @Tags invitations
+// @Produce json
+// @Success 501 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/invitations [get]
 func (h *Handler) GetInvitations(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, gin.H{"message": "Not implemented"})
 }
+
+// @Summary Criar convite
+// @Description Reservado — ainda não implementado
+// @Tags invitations
+// @Produce json
+// @Success 501 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/invitations [post]
 func (h *Handler) CreateInvitation(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, gin.H{"message": "Not implemented"})
 }
+
+// @Summary Obter convite por ID
+// @Description Reservado — ainda não implementado
+// @Tags invitations
+// @Produce json
+// @Param id path string true "ID do convite"
+// @Success 501 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/invitations/{id} [get]
 func (h *Handler) GetInvitation(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, gin.H{"message": "Not implemented"})
 }
+
+// @Summary Aceitar convite
+// @Description Reservado — ainda não implementado
+// @Tags invitations
+// @Produce json
+// @Param id path string true "ID do convite"
+// @Success 501 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/invitations/{id}/accept [put]
 func (h *Handler) AcceptInvitation(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, gin.H{"message": "Not implemented"})
 }
+
+// @Summary Excluir convite
+// @Description Reservado — ainda não implementado
+// @Tags invitations
+// @Produce json
+// @Param id path string true "ID do convite"
+// @Success 501 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/invitations/{id} [delete]
 func (h *Handler) DeleteInvitation(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, gin.H{"message": "Not implemented"})
 }

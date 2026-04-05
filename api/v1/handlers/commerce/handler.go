@@ -19,6 +19,16 @@ func NewHandler(db *gorm.DB) *Handler {
 	return &Handler{svc: commercesvc.NewService(db)}
 }
 
+// @Summary Registrar compra (itens pagos)
+// @Tags commerce
+// @Accept json
+// @Produce json
+// @Param request body commercedto.CreatePurchaseRequest true "Linhas da compra (obras ou coleções)"
+// @Success 201 {object} commercedto.PurchaseResponse
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /api/v1/purchases [post]
 func (h *Handler) CreatePurchase(c *gin.Context) {
 	userID, ok := middleware.GetCurrentUserID(c)
 	if !ok {
