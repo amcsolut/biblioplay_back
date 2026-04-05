@@ -2,12 +2,16 @@ package user
 
 import (
 	"errors"
+	"regexp"
+	"strings"
 	"time"
 
 	userDTO "api-backend-infinitrum/api/v1/dto/user"
 	"api-backend-infinitrum/api/v1/middleware"
+	profileRepo "api-backend-infinitrum/api/v1/repositories/profile"
 	userRepo "api-backend-infinitrum/api/v1/repositories/user"
 	"api-backend-infinitrum/config"
+	profileModel "api-backend-infinitrum/internal/models/profile"
 	userModel "api-backend-infinitrum/internal/models/user"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -16,15 +20,21 @@ import (
 	"gorm.io/gorm"
 )
 
+var registerUsernameRe = regexp.MustCompile(`^[a-zA-Z0-9_]{3,50}$`)
+
 type Service struct {
-	userRepo *userRepo.Repository
-	config   *config.Config
+	userRepo    *userRepo.Repository
+	profileRepo *profileRepo.Repository
+	db          *gorm.DB
+	config      *config.Config
 }
 
 func NewService(db *gorm.DB, cfg *config.Config) *Service {
 	return &Service{
-		userRepo: userRepo.NewRepository(db),
-		config:   cfg,
+		userRepo:    userRepo.NewRepository(db),
+		profileRepo: profileRepo.NewRepository(db),
+		db:          db,
+		config:      cfg,
 	}
 }
 
@@ -68,27 +78,29 @@ func (s *Service) Login(email, password string) (*userDTO.LoginResponse, error) 
 	}, nil
 }
 
-func (s *Service) Register(req *userDTO.RegisterRequest) (*userDTO.UserResponse, error) {
-	// Check if user already exists
+func (s *Service) RegisterMember(req *userDTO.RegisterMemberRequest) (*userDTO.UserResponse, error) {
+	username := strings.ToLower(strings.TrimSpace(req.Username))
+	if !registerUsernameRe.MatchString(username) {
+		return nil, errors.New("invalid username: use 3–50 characters, letters, numbers or underscore")
+	}
+
 	if _, err := s.userRepo.GetByEmail(req.Email); err == nil {
 		return nil, errors.New("email already registered")
 	}
+	taken, err := s.profileRepo.UsernameExists(nil, username)
+	if err != nil {
+		return nil, err
+	}
+	if taken {
+		return nil, errors.New("username already taken")
+	}
 
-	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
-
 	passwordHashStr := string(hashedPassword)
-	roleLevel := 1
-	if req.RoleLevel != nil {
-		if *req.RoleLevel != 1 && *req.RoleLevel != 2 {
-			return nil, errors.New("invalid role level: use 1 (usuário) or 2 (autor)")
-		}
-		roleLevel = *req.RoleLevel
-	}
-	// Create user entity
+
 	userEntity := &userModel.User{
 		ID:            uuid.New().String(),
 		Email:         req.Email,
@@ -98,21 +110,102 @@ func (s *Service) Register(req *userDTO.RegisterRequest) (*userDTO.UserResponse,
 		Phone:         req.Phone,
 		IsActive:      true,
 		EmailVerified: req.EmailVerified,
-		RoleLevel:     roleLevel,
+		RoleLevel:     userModel.RoleLevelMember,
 	}
 
-	// Save user
-	if err := s.userRepo.Create(userEntity); err != nil {
-		return nil, err
+	member := &profileModel.ProfileMember{
+		UserID:   userEntity.ID,
+		Username: username,
 	}
 
-	// Reload user from database to ensure all fields are populated (including defaults)
-	createdUser, err := s.userRepo.GetByID(userEntity.ID)
+	var created *userModel.User
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if err := s.userRepo.CreateWithTx(tx, userEntity); err != nil {
+			return err
+		}
+		if err := s.profileRepo.CreateMember(tx, member); err != nil {
+			return err
+		}
+		var reload userModel.User
+		if err := tx.Where("id = ? AND deleted_at IS NULL", userEntity.ID).First(&reload).Error; err != nil {
+			return err
+		}
+		created = &reload
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	userResponse := s.toUserResponse(createdUser)
+	userResponse := s.toUserResponse(created)
+	return &userResponse, nil
+}
+
+func (s *Service) RegisterAuthor(req *userDTO.RegisterAuthorRequest) (*userDTO.UserResponse, error) {
+	penName := strings.TrimSpace(req.PenName)
+	if penName == "" {
+		return nil, errors.New("pen_name is required")
+	}
+
+	if _, err := s.userRepo.GetByEmail(req.Email); err == nil {
+		return nil, errors.New("email already registered")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	passwordHashStr := string(hashedPassword)
+
+	userEntity := &userModel.User{
+		ID:            uuid.New().String(),
+		Email:         req.Email,
+		PasswordHash:  &passwordHashStr,
+		FirstName:     req.FirstName,
+		LastName:      req.LastName,
+		Phone:         req.Phone,
+		IsActive:      true,
+		EmailVerified: req.EmailVerified,
+		RoleLevel:     userModel.RoleLevelAuthor,
+	}
+
+	var created *userModel.User
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		slug, err := s.profileRepo.AllocateUniqueAuthorCommunitySlug(tx, penName)
+		if err != nil {
+			return err
+		}
+		if err := s.userRepo.CreateWithTx(tx, userEntity); err != nil {
+			return err
+		}
+		author := &profileModel.ProfileAuthor{
+			UserID:  userEntity.ID,
+			PenName: penName,
+			Slug:    slug,
+		}
+		if err := s.profileRepo.CreateAuthor(tx, author); err != nil {
+			return err
+		}
+		community := &profileModel.Community{
+			OwnerUserID: userEntity.ID,
+			Name:        penName,
+			Slug:        slug,
+		}
+		if err := s.profileRepo.CreateCommunity(tx, community); err != nil {
+			return err
+		}
+		var reload userModel.User
+		if err := tx.Where("id = ? AND deleted_at IS NULL", userEntity.ID).First(&reload).Error; err != nil {
+			return err
+		}
+		created = &reload
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	userResponse := s.toUserResponse(created)
 	return &userResponse, nil
 }
 

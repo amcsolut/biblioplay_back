@@ -20,6 +20,10 @@ func (r *Repository) Create(user *user.User) error {
 	return r.db.Create(user).Error
 }
 
+func (r *Repository) CreateWithTx(tx *gorm.DB, u *user.User) error {
+	return tx.Create(u).Error
+}
+
 func (r *Repository) GetByID(id string) (*user.User, error) {
 	var user user.User
 	err := r.db.Where("id = ? AND deleted_at IS NULL", id).First(&user).Error

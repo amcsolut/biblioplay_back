@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"api-backend-infinitrum/internal/models/catalog"
+	"api-backend-infinitrum/internal/models/commerce"
 	"api-backend-infinitrum/internal/models/feed"
+	"api-backend-infinitrum/internal/models/library"
 	"api-backend-infinitrum/internal/models/profile"
 	"api-backend-infinitrum/internal/models/user"
 
@@ -166,6 +168,22 @@ func AutoMigrateWithURL(db *gorm.DB, databaseURL string) error {
 	}
 	if err := migrator.AutoMigrate(&catalog.AudiobookChapter{}); err != nil {
 		return fmt.Errorf("failed to migrate AudiobookChapter: %w", err)
+	}
+	if err := migrator.AutoMigrate(&catalog.CatalogCollection{}); err != nil {
+		return fmt.Errorf("failed to migrate CatalogCollection: %w", err)
+	}
+	if err := migrator.AutoMigrate(&catalog.CatalogCollectionBook{}); err != nil {
+		return fmt.Errorf("failed to migrate CatalogCollectionBook: %w", err)
+	}
+
+	if err := migrator.AutoMigrate(&commerce.Purchase{}); err != nil {
+		return fmt.Errorf("failed to migrate Purchase: %w", err)
+	}
+	if err := migrator.AutoMigrate(&commerce.PurchaseLine{}); err != nil {
+		return fmt.Errorf("failed to migrate PurchaseLine: %w", err)
+	}
+	if err := migrator.AutoMigrate(&library.UserLibraryItem{}); err != nil {
+		return fmt.Errorf("failed to migrate UserLibraryItem: %w", err)
 	}
 
 	// Feed da comunidade (posts, mídia, comentários, replies, reações)

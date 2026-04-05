@@ -100,3 +100,70 @@ type AudiobookChapterResponse struct {
 	CreatedAt         time.Time `json:"created_at"`
 	UpdatedAt         time.Time `json:"updated_at"`
 }
+
+// --- Coleções (agrupamento de obras) ---
+
+type CreateCollectionRequest struct {
+	Title         string   `json:"title" binding:"required,min=1,max=300"`
+	Slug          string   `json:"slug" binding:"required,min=1,max=160"`
+	Subtitle      *string  `json:"subtitle"`
+	Description   *string  `json:"description"`
+	CoverImageURL *string  `json:"cover_image_url"`
+	Price         *float64 `json:"price"`
+	Currency      string   `json:"currency"`
+	AccessTier    string   `json:"access_tier"`
+	Kind          *string  `json:"kind" binding:"omitempty,max=64"`
+	Status        string   `json:"status"`
+	Language      string   `json:"language"`
+	PublishedAt   *string   `json:"published_at"`
+	BookIDs       []string  `json:"book_ids"`
+	VolumeLabels  []*string `json:"volume_labels"`
+}
+
+type UpdateCollectionRequest struct {
+	Title         *string  `json:"title" binding:"omitempty,min=1,max=300"`
+	Slug          *string  `json:"slug" binding:"omitempty,min=1,max=160"`
+	Subtitle      *string  `json:"subtitle"`
+	Description   *string  `json:"description"`
+	CoverImageURL *string  `json:"cover_image_url"`
+	Price         *float64 `json:"price"`
+	Currency      *string  `json:"currency"`
+	AccessTier    *string  `json:"access_tier"`
+	Kind          *string  `json:"kind" binding:"omitempty,max=64"`
+	Status        *string  `json:"status"`
+	Language      *string  `json:"language"`
+	PublishedAt   *string  `json:"published_at"`
+}
+
+type ReplaceCollectionBooksRequest struct {
+	// Ordem define a sequência na coleção; lista vazia remove todos os livros.
+	BookIDs       []string  `json:"book_ids"`
+	VolumeLabels  []*string `json:"volume_labels"`
+}
+
+type CollectionBookItemResponse struct {
+	ID          string       `json:"id"`
+	Position    int          `json:"position"`
+	VolumeLabel *string      `json:"volume_label,omitempty"`
+	Book        BookResponse `json:"book"`
+}
+
+type CollectionResponse struct {
+	ID            string     `json:"id"`
+	AuthorUserID  string     `json:"author_user_id"`
+	Title         string     `json:"title"`
+	Slug          string     `json:"slug"`
+	Subtitle      *string    `json:"subtitle,omitempty"`
+	Description   *string    `json:"description,omitempty"`
+	CoverImageURL *string    `json:"cover_image_url,omitempty"`
+	Price         float64    `json:"price"`
+	Currency      string     `json:"currency"`
+	AccessTier    string     `json:"access_tier"`
+	Kind          *string    `json:"kind,omitempty"`
+	Status        string     `json:"status"`
+	Language      string     `json:"language"`
+	PublishedAt   *time.Time `json:"published_at,omitempty"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	Books         []CollectionBookItemResponse `json:"books"`
+}

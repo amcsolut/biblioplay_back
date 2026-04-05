@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	catalogDTO "api-backend-infinitrum/api/v1/dto/catalog"
@@ -379,4 +380,311 @@ func toAudiobookChapterResponse(ch *catalogmodel.AudiobookChapter) *catalogDTO.A
 		CreatedAt:       ch.CreatedAt,
 		UpdatedAt:       ch.UpdatedAt,
 	}
+}
+
+// --- Coleções ---
+
+func (s *Service) collectionOwnedBy(collectionID, authorUserID string) (*catalogmodel.CatalogCollection, error) {
+	var c catalogmodel.CatalogCollection
+	if err := s.db.Where("id = ? AND author_user_id = ?", collectionID, authorUserID).First(&c).Error; err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+func validateVolumeLabelsMatchBooks(bookIDs []string, volumeLabels []*string) error {
+	if volumeLabels == nil || len(volumeLabels) == 0 {
+		return nil
+	}
+	if len(volumeLabels) != len(bookIDs) {
+		return errors.New("volume_labels deve ter o mesmo tamanho que book_ids")
+	}
+	return nil
+}
+
+func volumeLabelAt(volumeLabels []*string, i int) *string {
+	if volumeLabels == nil || i >= len(volumeLabels) || volumeLabels[i] == nil {
+		return nil
+	}
+	s := strings.TrimSpace(*volumeLabels[i])
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+func (s *Service) validateOrderedBookIDsForAuthor(bookIDs []string, authorUserID string) error {
+	if len(bookIDs) == 0 {
+		return nil
+	}
+	seen := make(map[string]struct{}, len(bookIDs))
+	for _, id := range bookIDs {
+		if _, ok := seen[id]; ok {
+			return errors.New("lista de livros contém duplicatas")
+		}
+		seen[id] = struct{}{}
+	}
+	ids := make([]string, 0, len(seen))
+	for id := range seen {
+		ids = append(ids, id)
+	}
+	var count int64
+	if err := s.db.Model(&catalogmodel.CatalogBook{}).Where("author_user_id = ? AND id IN ?", authorUserID, ids).Count(&count).Error; err != nil {
+		return err
+	}
+	if int(count) != len(seen) {
+		return errors.New("um ou mais livros não existem ou não pertencem ao autor")
+	}
+	return nil
+}
+
+func (s *Service) collectionItemsResponse(collectionID string) ([]catalogDTO.CollectionBookItemResponse, error) {
+	var items []catalogmodel.CatalogCollectionBook
+	if err := s.db.Where("collection_id = ?", collectionID).Preload("Book").Order("position ASC").Find(&items).Error; err != nil {
+		return nil, err
+	}
+	out := make([]catalogDTO.CollectionBookItemResponse, 0, len(items))
+	for i := range items {
+		out = append(out, catalogDTO.CollectionBookItemResponse{
+			ID:          items[i].ID,
+			Position:    items[i].Position,
+			VolumeLabel: items[i].VolumeLabel,
+			Book:        *toBookResponse(&items[i].Book),
+		})
+	}
+	return out, nil
+}
+
+func toCollectionResponse(c *catalogmodel.CatalogCollection, books []catalogDTO.CollectionBookItemResponse) *catalogDTO.CollectionResponse {
+	return &catalogDTO.CollectionResponse{
+		ID:            c.ID,
+		AuthorUserID:  c.AuthorUserID,
+		Title:         c.Title,
+		Slug:          c.Slug,
+		Subtitle:      c.Subtitle,
+		Description:   c.Description,
+		CoverImageURL: c.CoverImageURL,
+		Price:         c.Price,
+		Currency:      c.Currency,
+		AccessTier:    c.AccessTier,
+		Kind:          c.Kind,
+		Status:        c.Status,
+		Language:      c.Language,
+		PublishedAt:   c.PublishedAt,
+		CreatedAt:     c.CreatedAt,
+		UpdatedAt:     c.UpdatedAt,
+		Books:         books,
+	}
+}
+
+func (s *Service) CreateCollection(authorUserID string, req *catalogDTO.CreateCollectionRequest) (*catalogDTO.CollectionResponse, error) {
+	if err := validateVolumeLabelsMatchBooks(req.BookIDs, req.VolumeLabels); err != nil {
+		return nil, err
+	}
+	if err := s.validateOrderedBookIDsForAuthor(req.BookIDs, authorUserID); err != nil {
+		return nil, err
+	}
+	col := &catalogmodel.CatalogCollection{
+		AuthorUserID:  authorUserID,
+		Title:         req.Title,
+		Slug:          req.Slug,
+		Subtitle:      req.Subtitle,
+		Description:   req.Description,
+		CoverImageURL: req.CoverImageURL,
+		Kind:          req.Kind,
+	}
+	if req.Price != nil {
+		col.Price = *req.Price
+	}
+	if req.Currency != "" {
+		col.Currency = req.Currency
+	}
+	if req.AccessTier != "" {
+		col.AccessTier = req.AccessTier
+	}
+	if req.Status != "" {
+		col.Status = req.Status
+	}
+	if req.Language != "" {
+		col.Language = req.Language
+	}
+	if req.PublishedAt != nil && *req.PublishedAt != "" {
+		t, err := time.Parse(time.RFC3339, *req.PublishedAt)
+		if err != nil {
+			return nil, errors.New("published_at inválido: use RFC3339")
+		}
+		col.PublishedAt = &t
+	}
+
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(col).Error; err != nil {
+			return err
+		}
+		for i, bookID := range req.BookIDs {
+			item := &catalogmodel.CatalogCollectionBook{
+				CollectionID: col.ID,
+				BookID:       bookID,
+				Position:     i + 1,
+				VolumeLabel:  volumeLabelAt(req.VolumeLabels, i),
+			}
+			if err := tx.Create(item).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := s.collectionItemsResponse(col.ID)
+	if err != nil {
+		return nil, err
+	}
+	return toCollectionResponse(col, items), nil
+}
+
+func (s *Service) ListCollections(authorUserID string) ([]catalogDTO.CollectionResponse, error) {
+	var list []catalogmodel.CatalogCollection
+	if err := s.db.Where("author_user_id = ?", authorUserID).Order("created_at DESC").Find(&list).Error; err != nil {
+		return nil, err
+	}
+	out := make([]catalogDTO.CollectionResponse, 0, len(list))
+	for i := range list {
+		items, err := s.collectionItemsResponse(list[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, *toCollectionResponse(&list[i], items))
+	}
+	return out, nil
+}
+
+func (s *Service) GetCollection(id, authorUserID string) (*catalogDTO.CollectionResponse, error) {
+	c, err := s.collectionOwnedBy(id, authorUserID)
+	if err != nil {
+		return nil, err
+	}
+	items, err := s.collectionItemsResponse(c.ID)
+	if err != nil {
+		return nil, err
+	}
+	return toCollectionResponse(c, items), nil
+}
+
+func (s *Service) UpdateCollection(id, authorUserID string, req *catalogDTO.UpdateCollectionRequest) (*catalogDTO.CollectionResponse, error) {
+	c, err := s.collectionOwnedBy(id, authorUserID)
+	if err != nil {
+		return nil, err
+	}
+	updates := map[string]interface{}{"updated_at": time.Now()}
+	if req.Title != nil {
+		updates["title"] = *req.Title
+	}
+	if req.Slug != nil {
+		updates["slug"] = *req.Slug
+	}
+	if req.Subtitle != nil {
+		updates["subtitle"] = *req.Subtitle
+	}
+	if req.Description != nil {
+		updates["description"] = *req.Description
+	}
+	if req.CoverImageURL != nil {
+		updates["cover_image_url"] = *req.CoverImageURL
+	}
+	if req.Price != nil {
+		updates["price"] = *req.Price
+	}
+	if req.Currency != nil {
+		updates["currency"] = *req.Currency
+	}
+	if req.AccessTier != nil {
+		updates["access_tier"] = *req.AccessTier
+	}
+	if req.Kind != nil {
+		updates["kind"] = *req.Kind
+	}
+	if req.Status != nil {
+		updates["status"] = *req.Status
+	}
+	if req.Language != nil {
+		updates["language"] = *req.Language
+	}
+	if req.PublishedAt != nil {
+		if *req.PublishedAt == "" {
+			updates["published_at"] = nil
+		} else {
+			t, err := time.Parse(time.RFC3339, *req.PublishedAt)
+			if err != nil {
+				return nil, errors.New("published_at inválido: use RFC3339")
+			}
+			updates["published_at"] = t
+		}
+	}
+	if err := s.db.Model(c).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+	if err := s.db.First(c, "id = ?", c.ID).Error; err != nil {
+		return nil, err
+	}
+	items, err := s.collectionItemsResponse(c.ID)
+	if err != nil {
+		return nil, err
+	}
+	return toCollectionResponse(c, items), nil
+}
+
+func (s *Service) DeleteCollection(id, authorUserID string) error {
+	res := s.db.Where("id = ? AND author_user_id = ?", id, authorUserID).Delete(&catalogmodel.CatalogCollection{})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
+func (s *Service) ReplaceCollectionBooks(collectionID, authorUserID string, req *catalogDTO.ReplaceCollectionBooksRequest) (*catalogDTO.CollectionResponse, error) {
+	c, err := s.collectionOwnedBy(collectionID, authorUserID)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateVolumeLabelsMatchBooks(req.BookIDs, req.VolumeLabels); err != nil {
+		return nil, err
+	}
+	if err := s.validateOrderedBookIDsForAuthor(req.BookIDs, authorUserID); err != nil {
+		return nil, err
+	}
+
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("collection_id = ?", c.ID).Delete(&catalogmodel.CatalogCollectionBook{}).Error; err != nil {
+			return err
+		}
+		for i, bookID := range req.BookIDs {
+			item := &catalogmodel.CatalogCollectionBook{
+				CollectionID: c.ID,
+				BookID:       bookID,
+				Position:     i + 1,
+				VolumeLabel:  volumeLabelAt(req.VolumeLabels, i),
+			}
+			if err := tx.Create(item).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.db.First(c, "id = ?", c.ID).Error; err != nil {
+		return nil, err
+	}
+	items, err := s.collectionItemsResponse(c.ID)
+	if err != nil {
+		return nil, err
+	}
+	return toCollectionResponse(c, items), nil
 }

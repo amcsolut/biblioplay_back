@@ -529,15 +529,35 @@ definitions:
     type: object
   user.GoogleAuthRequest:
     properties:
-      role_level:
-        description: 'Usado em POST /auth/register/google: 1 = usuário, 2 = autor
-          (omitido = 1). Ignorado em /auth/google.'
-        type: integer
       token:
         description: Google ID token ou access token
         type: string
     required:
     - token
+    type: object
+  user.GoogleRegisterAuthorRequest:
+    properties:
+      pen_name:
+        maxLength: 200
+        minLength: 1
+        type: string
+      token:
+        type: string
+    required:
+    - pen_name
+    - token
+    type: object
+  user.GoogleRegisterMemberRequest:
+    properties:
+      token:
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - token
+    - username
     type: object
   user.LoginRequest:
     properties:
@@ -575,7 +595,35 @@ definitions:
       token_type:
         type: string
     type: object
-  user.RegisterRequest:
+  user.RegisterAuthorRequest:
+    properties:
+      email:
+        type: string
+      email_verified:
+        type: boolean
+      first_name:
+        minLength: 2
+        type: string
+      last_name:
+        minLength: 2
+        type: string
+      password:
+        minLength: 6
+        type: string
+      pen_name:
+        maxLength: 200
+        minLength: 1
+        type: string
+      phone:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    - pen_name
+    type: object
+  user.RegisterMemberRequest:
     properties:
       email:
         type: string
@@ -592,14 +640,16 @@ definitions:
         type: string
       phone:
         type: string
-      role_level:
-        description: 'Public signup: 1 = ouvinte/usuário, 2 = autor (omitido = 1)'
-        type: integer
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
     required:
     - email
     - first_name
     - last_name
     - password
+    - username
     type: object
   user.ResetPasswordRequest:
     properties:
@@ -850,18 +900,19 @@ paths:
       summary: Refresh access token
       tags:
       - auth
-  /api/v1/auth/register:
+  /api/v1/auth/register/author:
     post:
       consumes:
       - application/json
-      description: Create a new user account
+      description: Cria conta com role_level 2, profile_authors e communities (slug
+        único derivado do pen_name)
       parameters:
-      - description: User registration data
+      - description: Author registration
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/user.RegisterRequest'
+          $ref: '#/definitions/user.RegisterAuthorRequest'
       produces:
       - application/json
       responses:
@@ -874,21 +925,22 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Register new user
+      summary: Register author
       tags:
       - auth
-  /api/v1/auth/register/google:
+  /api/v1/auth/register/google/author:
     post:
       consumes:
       - application/json
-      description: Create a new user account with Google authentication
+      description: Cria conta Google com role 2, profile_authors e communities (slug
+        a partir do pen_name)
       parameters:
-      - description: Google ID token
+      - description: Google token + pen_name
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/user.GoogleAuthRequest'
+          $ref: '#/definitions/user.GoogleRegisterAuthorRequest'
       produces:
       - application/json
       responses:
@@ -906,7 +958,66 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Register with Google
+      summary: Register with Google (author)
+      tags:
+      - auth
+  /api/v1/auth/register/google/member:
+    post:
+      consumes:
+      - application/json
+      description: Cria conta Google com role 1 e profile_members
+      parameters:
+      - description: Google token + username
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.GoogleRegisterMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register with Google (member)
+      tags:
+      - auth
+  /api/v1/auth/register/member:
+    post:
+      consumes:
+      - application/json
+      description: Cria conta com role_level 1 e registro em profile_members
+      parameters:
+      - description: Member registration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.RegisterMemberRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/user.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register member (reader/listener)
       tags:
       - auth
   /api/v1/auth/reset-password:

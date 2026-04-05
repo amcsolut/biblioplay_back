@@ -1,17 +1,22 @@
 package user
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	userDTO "api-backend-infinitrum/api/v1/dto/user"
 	"api-backend-infinitrum/api/v1/middleware"
+	profileRepo "api-backend-infinitrum/api/v1/repositories/profile"
 	userRepo "api-backend-infinitrum/api/v1/repositories/user"
 	"api-backend-infinitrum/config"
+	profileModel "api-backend-infinitrum/internal/models/profile"
 	userModel "api-backend-infinitrum/internal/models/user"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -19,15 +24,83 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	googleRegUsernameRe = regexp.MustCompile(`^[a-zA-Z0-9_]{3,50}$`)
+	nonUserCharsRe      = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
+)
+
+func randomAlnum(n int) string {
+	const letters = "abcdefghijklmnopqrstuvwxyz0123456789"
+	b := make([]byte, n)
+	_, _ = rand.Read(b)
+	for i := range b {
+		b[i] = letters[int(b[i])%len(letters)]
+	}
+	return string(b)
+}
+
+func sanitizeMemberUsernameBase(localOrFallback string) string {
+	s := strings.ToLower(strings.TrimSpace(localOrFallback))
+	s = nonUserCharsRe.ReplaceAllString(s, "_")
+	s = strings.Trim(s, "_")
+	if len(s) < 3 {
+		s = "user"
+	}
+	if len(s) > 40 {
+		s = s[:40]
+	}
+	return s
+}
+
+// uniqueMemberUsername gera username único para profile_members (login social sem cadastro explícito).
+func (s *SocialAuthService) uniqueMemberUsername(email, fallbackID string) (string, error) {
+	var base string
+	if email != "" {
+		parts := strings.Split(email, "@")
+		base = sanitizeMemberUsernameBase(parts[0])
+	} else {
+		base = sanitizeMemberUsernameBase("u_" + fallbackID)
+	}
+	if !googleRegUsernameRe.MatchString(base) {
+		base = "user"
+	}
+	for i := 0; i < 40; i++ {
+		candidate := base
+		if i > 0 {
+			suf := "_" + randomAlnum(6)
+			maxBase := 50 - len(suf)
+			if maxBase < 3 {
+				maxBase = 3
+			}
+			if len(candidate) > maxBase {
+				candidate = candidate[:maxBase]
+			}
+			candidate = candidate + suf
+		}
+		taken, err := s.profileRepo.UsernameExists(nil, candidate)
+		if err != nil {
+			return "", err
+		}
+		if !taken {
+			return candidate, nil
+		}
+	}
+	return "", errors.New("could not allocate username")
+}
+
 type SocialAuthService struct {
-	userRepo *userRepo.Repository
-	config   *config.Config
+	userRepo    *userRepo.Repository
+	profileRepo *profileRepo.Repository
+	db          *gorm.DB
+	config      *config.Config
 }
 
 func NewSocialAuthService(db *gorm.DB, cfg *config.Config) *SocialAuthService {
 	return &SocialAuthService{
-		userRepo: userRepo.NewRepository(db),
-		config:   cfg,
+		userRepo:    userRepo.NewRepository(db),
+		profileRepo: profileRepo.NewRepository(db),
+		db:          db,
+		config:      cfg,
 	}
 }
 
@@ -128,12 +201,22 @@ func (s *SocialAuthService) AuthenticateWithGoogle(token string) (*userDTO.Login
 		AvatarURL:     &avatarURL,
 		IsActive:      true,
 		EmailVerified: userInfo.EmailVerified,
-		RoleLevel:     1, // Role level 1 (Member) for social auth users
+		RoleLevel:     userModel.RoleLevelMember,
 		Provider:      &provider,
 		ProviderID:    &userInfo.Sub,
 	}
 
-	if err := s.userRepo.Create(userEntity); err != nil {
+	uname, err := s.uniqueMemberUsername(userInfo.Email, userInfo.Sub)
+	if err != nil {
+		return nil, err
+	}
+	member := &profileModel.ProfileMember{UserID: userEntity.ID, Username: uname}
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		if err := s.userRepo.CreateWithTx(tx, userEntity); err != nil {
+			return err
+		}
+		return s.profileRepo.CreateMember(tx, member)
+	}); err != nil {
 		return nil, err
 	}
 
@@ -196,12 +279,22 @@ func (s *SocialAuthService) AuthenticateWithFacebook(accessToken string) (*userD
 		AvatarURL:     &avatarURL,
 		IsActive:      true,
 		EmailVerified: true, // Facebook emails are verified
-		RoleLevel:     1, // Role level 1 (Member) for social auth users
+		RoleLevel:     userModel.RoleLevelMember,
 		Provider:      &provider,
 		ProviderID:    &userInfo.ID,
 	}
 
-	if err := s.userRepo.Create(userEntity); err != nil {
+	uname, err := s.uniqueMemberUsername(userInfo.Email, userInfo.ID)
+	if err != nil {
+		return nil, err
+	}
+	member := &profileModel.ProfileMember{UserID: userEntity.ID, Username: uname}
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		if err := s.userRepo.CreateWithTx(tx, userEntity); err != nil {
+			return err
+		}
+		return s.profileRepo.CreateMember(tx, member)
+	}); err != nil {
 		return nil, err
 	}
 
@@ -375,52 +468,24 @@ func (s *SocialAuthService) getFacebookUserInfo(accessToken string) (*FacebookUs
 	return &userInfo, nil
 }
 
-// RegisterWithGoogle creates a new user account with Google authentication
-func (s *SocialAuthService) RegisterWithGoogle(token string, roleLevel *int) (*userDTO.UserResponse, error) {
-	// Try to verify as ID token first, then as access token
-	var userInfo *GoogleUserInfo
-	var err error
-	
-	userInfo, err = s.verifyGoogleToken(token)
+func (s *SocialAuthService) resolveGoogleUserInfo(token string) (*GoogleUserInfo, error) {
+	userInfo, err := s.verifyGoogleToken(token)
 	if err != nil {
-		// If ID token verification fails, try as access token
 		userInfo, err = s.getGoogleUserInfoFromAccessToken(token)
 		if err != nil {
 			return nil, errors.New("invalid Google token")
 		}
 	}
-	
-	// Ensure Sub is set (use ID if Sub is empty)
 	if userInfo.Sub == "" && userInfo.ID != "" {
 		userInfo.Sub = userInfo.ID
 	}
-	
-	// Ensure EmailVerified is set
 	if !userInfo.EmailVerified && userInfo.VerifiedEmail {
 		userInfo.EmailVerified = userInfo.VerifiedEmail
 	}
+	return userInfo, nil
+}
 
-	provider := "google"
-
-	rl := 1
-	if roleLevel != nil {
-		if *roleLevel != 1 && *roleLevel != 2 {
-			return nil, errors.New("invalid role level: use 1 (usuário) or 2 (autor)")
-		}
-		rl = *roleLevel
-	}
-
-	// Check if user already exists by provider ID
-	if _, err := s.userRepo.GetByProviderID(provider, userInfo.Sub); err == nil {
-		return nil, errors.New("user already exists with this Google account")
-	}
-
-	// Check if user already exists by email
-	if _, err := s.userRepo.GetByEmail(userInfo.Email); err == nil {
-		return nil, errors.New("email already registered")
-	}
-
-	// Create new user
+func (s *SocialAuthService) googleUserEntity(userInfo *GoogleUserInfo, roleLevel int) *userModel.User {
 	firstName := userInfo.GivenName
 	if firstName == "" {
 		firstName = userInfo.Name
@@ -429,50 +494,150 @@ func (s *SocialAuthService) RegisterWithGoogle(token string, roleLevel *int) (*u
 	if lastName == "" {
 		lastName = ""
 	}
-
 	avatarURL := userInfo.Picture
-	userEntity := &userModel.User{
+	provider := "google"
+	return &userModel.User{
 		ID:            uuid.New().String(),
 		Email:         userInfo.Email,
-		PasswordHash:  nil, // No password for social auth
+		PasswordHash:  nil,
 		FirstName:     firstName,
 		LastName:      lastName,
 		Phone:         nil,
 		AvatarURL:     &avatarURL,
 		IsActive:      true,
 		EmailVerified: userInfo.EmailVerified,
-		RoleLevel:     rl,
+		RoleLevel:     roleLevel,
 		Provider:      &provider,
 		ProviderID:    &userInfo.Sub,
 	}
+}
 
-	if err := s.userRepo.Create(userEntity); err != nil {
-		return nil, err
+func (s *SocialAuthService) userToResponse(u *userModel.User) userDTO.UserResponse {
+	return userDTO.UserResponse{
+		ID:            u.ID,
+		Email:         u.Email,
+		FirstName:     u.FirstName,
+		LastName:      u.LastName,
+		Phone:         u.Phone,
+		AvatarURL:     u.AvatarURL,
+		IsActive:      u.IsActive,
+		EmailVerified: u.EmailVerified,
+		RoleLevel:     u.RoleLevel,
+		Provider:      u.Provider,
+		CreatedAt:     u.CreatedAt,
+		UpdatedAt:     u.UpdatedAt,
 	}
+}
 
-	// Reload user from database to ensure all fields are populated (including defaults)
-	createdUser, err := s.userRepo.GetByID(userEntity.ID)
+// RegisterWithGoogleMember cria conta Google com role 1 e profile_members.
+func (s *SocialAuthService) RegisterWithGoogleMember(token, username string) (*userDTO.UserResponse, error) {
+	userInfo, err := s.resolveGoogleUserInfo(token)
 	if err != nil {
 		return nil, err
 	}
-
-	// Convert to response
-	userResponse := userDTO.UserResponse{
-		ID:            createdUser.ID,
-		Email:         createdUser.Email,
-		FirstName:     createdUser.FirstName,
-		LastName:      createdUser.LastName,
-		Phone:         createdUser.Phone,
-		AvatarURL:     createdUser.AvatarURL,
-		IsActive:      createdUser.IsActive,
-		EmailVerified: createdUser.EmailVerified,
-		RoleLevel:     createdUser.RoleLevel,
-		Provider:      createdUser.Provider,
-		CreatedAt:     createdUser.CreatedAt,
-		UpdatedAt:     createdUser.UpdatedAt,
+	username = strings.ToLower(strings.TrimSpace(username))
+	if !googleRegUsernameRe.MatchString(username) {
+		return nil, errors.New("invalid username: use 3–50 characters, letters, numbers or underscore")
 	}
 
-	return &userResponse, nil
+	provider := "google"
+	if _, err := s.userRepo.GetByProviderID(provider, userInfo.Sub); err == nil {
+		return nil, errors.New("user already exists with this Google account")
+	}
+	if _, err := s.userRepo.GetByEmail(userInfo.Email); err == nil {
+		return nil, errors.New("email already registered")
+	}
+	taken, err := s.profileRepo.UsernameExists(nil, username)
+	if err != nil {
+		return nil, err
+	}
+	if taken {
+		return nil, errors.New("username already taken")
+	}
+
+	userEntity := s.googleUserEntity(userInfo, userModel.RoleLevelMember)
+	member := &profileModel.ProfileMember{UserID: userEntity.ID, Username: username}
+
+	var created *userModel.User
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		if err := s.userRepo.CreateWithTx(tx, userEntity); err != nil {
+			return err
+		}
+		if err := s.profileRepo.CreateMember(tx, member); err != nil {
+			return err
+		}
+		var reload userModel.User
+		if err := tx.Where("id = ? AND deleted_at IS NULL", userEntity.ID).First(&reload).Error; err != nil {
+			return err
+		}
+		created = &reload
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp := s.userToResponse(created)
+	return &resp, nil
+}
+
+// RegisterWithGoogleAuthor cria conta Google com role 2, profile_authors e communities (slug derivado do pen_name).
+func (s *SocialAuthService) RegisterWithGoogleAuthor(token, penName string) (*userDTO.UserResponse, error) {
+	userInfo, err := s.resolveGoogleUserInfo(token)
+	if err != nil {
+		return nil, err
+	}
+	penName = strings.TrimSpace(penName)
+	if penName == "" {
+		return nil, errors.New("pen_name is required")
+	}
+
+	provider := "google"
+	if _, err := s.userRepo.GetByProviderID(provider, userInfo.Sub); err == nil {
+		return nil, errors.New("user already exists with this Google account")
+	}
+	if _, err := s.userRepo.GetByEmail(userInfo.Email); err == nil {
+		return nil, errors.New("email already registered")
+	}
+
+	userEntity := s.googleUserEntity(userInfo, userModel.RoleLevelAuthor)
+
+	var created *userModel.User
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+		slug, err := s.profileRepo.AllocateUniqueAuthorCommunitySlug(tx, penName)
+		if err != nil {
+			return err
+		}
+		if err := s.userRepo.CreateWithTx(tx, userEntity); err != nil {
+			return err
+		}
+		author := &profileModel.ProfileAuthor{
+			UserID:  userEntity.ID,
+			PenName: penName,
+			Slug:    slug,
+		}
+		if err := s.profileRepo.CreateAuthor(tx, author); err != nil {
+			return err
+		}
+		community := &profileModel.Community{
+			OwnerUserID: userEntity.ID,
+			Name:        penName,
+			Slug:        slug,
+		}
+		if err := s.profileRepo.CreateCommunity(tx, community); err != nil {
+			return err
+		}
+		var reload userModel.User
+		if err := tx.Where("id = ? AND deleted_at IS NULL", userEntity.ID).First(&reload).Error; err != nil {
+			return err
+		}
+		created = &reload
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp := s.userToResponse(created)
+	return &resp, nil
 }
 
 // RegisterWithFacebook creates a new user account with Facebook authentication

@@ -51,26 +51,14 @@ func (h *Handler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary Register new user
-// @Description Create a new user account
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body userDTO.RegisterRequest true "User registration data"
-// @Success 201 {object} userDTO.UserResponse
-// @Failure 400 {object} map[string]interface{}
-// @Router /api/v1/auth/register [post]
-func (h *Handler) Register(c *gin.Context) {
-	var req userDTO.RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		// Return detailed validation errors
+func bindRegisterJSON(c *gin.Context, req interface{}) bool {
+	if err := c.ShouldBindJSON(req); err != nil {
 		var validationErrors []string
 		if validationErr, ok := err.(interface{ Unwrap() []error }); ok {
 			for _, e := range validationErr.Unwrap() {
 				validationErrors = append(validationErrors, e.Error())
 			}
 		}
-		
 		response := gin.H{
 			"error":   "Validation failed",
 			"message": err.Error(),
@@ -78,17 +66,53 @@ func (h *Handler) Register(c *gin.Context) {
 		if len(validationErrors) > 0 {
 			response["validation_errors"] = validationErrors
 		}
-		
 		c.JSON(http.StatusBadRequest, response)
+		return false
+	}
+	return true
+}
+
+// @Summary Register member (reader/listener)
+// @Description Cria conta com role_level 1 e registro em profile_members
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body userDTO.RegisterMemberRequest true "Member registration"
+// @Success 201 {object} userDTO.UserResponse
+// @Failure 400 {object} map[string]interface{}
+// @Router /api/v1/auth/register/member [post]
+func (h *Handler) RegisterMember(c *gin.Context) {
+	var req userDTO.RegisterMemberRequest
+	if !bindRegisterJSON(c, &req) {
 		return
 	}
-
-	userResponse, err := h.userService.Register(&req)
+	userResponse, err := h.userService.RegisterMember(&req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	c.JSON(http.StatusCreated, userResponse)
+}
 
+// @Summary Register author
+// @Description Cria conta com role_level 2, profile_authors e communities (slug único derivado do pen_name)
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body userDTO.RegisterAuthorRequest true "Author registration"
+// @Success 201 {object} userDTO.UserResponse
+// @Failure 400 {object} map[string]interface{}
+// @Router /api/v1/auth/register/author [post]
+func (h *Handler) RegisterAuthor(c *gin.Context) {
+	var req userDTO.RegisterAuthorRequest
+	if !bindRegisterJSON(c, &req) {
+		return
+	}
+	userResponse, err := h.userService.RegisterAuthor(&req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusCreated, userResponse)
 }
 
@@ -400,24 +424,23 @@ func (h *Handler) GoogleAuth(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary Register with Google
-// @Description Create a new user account with Google authentication
+// @Summary Register with Google (member)
+// @Description Cria conta Google com role 1 e profile_members
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param request body userDTO.GoogleAuthRequest true "Google ID token"
+// @Param request body userDTO.GoogleRegisterMemberRequest true "Google token + username"
 // @Success 201 {object} userDTO.UserResponse
 // @Failure 400 {object} map[string]interface{}
 // @Failure 409 {object} map[string]interface{}
-// @Router /api/v1/auth/register/google [post]
-func (h *Handler) RegisterWithGoogle(c *gin.Context) {
-	var req userDTO.GoogleAuthRequest
+// @Router /api/v1/auth/register/google/member [post]
+func (h *Handler) RegisterWithGoogleMember(c *gin.Context) {
+	var req userDTO.GoogleRegisterMemberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	userResponse, err := h.socialAuthService.RegisterWithGoogle(req.Token, req.RoleLevel)
+	userResponse, err := h.socialAuthService.RegisterWithGoogleMember(req.Token, req.Username)
 	if err != nil {
 		if err.Error() == "user already exists with this Google account" || err.Error() == "email already registered" {
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
@@ -426,6 +449,33 @@ func (h *Handler) RegisterWithGoogle(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	c.JSON(http.StatusCreated, userResponse)
+}
 
+// @Summary Register with Google (author)
+// @Description Cria conta Google com role 2, profile_authors e communities (slug a partir do pen_name)
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body userDTO.GoogleRegisterAuthorRequest true "Google token + pen_name"
+// @Success 201 {object} userDTO.UserResponse
+// @Failure 400 {object} map[string]interface{}
+// @Failure 409 {object} map[string]interface{}
+// @Router /api/v1/auth/register/google/author [post]
+func (h *Handler) RegisterWithGoogleAuthor(c *gin.Context) {
+	var req userDTO.GoogleRegisterAuthorRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	userResponse, err := h.socialAuthService.RegisterWithGoogleAuthor(req.Token, req.PenName)
+	if err != nil {
+		if err.Error() == "user already exists with this Google account" || err.Error() == "email already registered" {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusCreated, userResponse)
 }

@@ -288,9 +288,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/auth/register": {
+        "/api/v1/auth/register/author": {
             "post": {
-                "description": "Create a new user account",
+                "description": "Cria conta com role_level 2, profile_authors e communities (slug único derivado do pen_name)",
                 "consumes": [
                     "application/json"
                 ],
@@ -300,15 +300,15 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Register new user",
+                "summary": "Register author",
                 "parameters": [
                     {
-                        "description": "User registration data",
+                        "description": "Author registration",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.RegisterRequest"
+                            "$ref": "#/definitions/user.RegisterAuthorRequest"
                         }
                     }
                 ],
@@ -329,9 +329,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/auth/register/google": {
+        "/api/v1/auth/register/google/author": {
             "post": {
-                "description": "Create a new user account with Google authentication",
+                "description": "Cria conta Google com role 2, profile_authors e communities (slug a partir do pen_name)",
                 "consumes": [
                     "application/json"
                 ],
@@ -341,15 +341,15 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Register with Google",
+                "summary": "Register with Google (author)",
                 "parameters": [
                     {
-                        "description": "Google ID token",
+                        "description": "Google token + pen_name",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.GoogleAuthRequest"
+                            "$ref": "#/definitions/user.GoogleRegisterAuthorRequest"
                         }
                     }
                 ],
@@ -369,6 +369,95 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register/google/member": {
+            "post": {
+                "description": "Cria conta Google com role 1 e profile_members",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register with Google (member)",
+                "parameters": [
+                    {
+                        "description": "Google token + username",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.GoogleRegisterMemberRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/user.UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register/member": {
+            "post": {
+                "description": "Cria conta com role_level 1 e registro em profile_members",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register member (reader/listener)",
+                "parameters": [
+                    {
+                        "description": "Member registration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/user.RegisterMemberRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/user.UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -3928,13 +4017,43 @@ const docTemplate = `{
                 "token"
             ],
             "properties": {
-                "role_level": {
-                    "description": "Usado em POST /auth/register/google: 1 = usuário, 2 = autor (omitido = 1). Ignorado em /auth/google.",
-                    "type": "integer"
-                },
                 "token": {
                     "description": "Google ID token ou access token",
                     "type": "string"
+                }
+            }
+        },
+        "user.GoogleRegisterAuthorRequest": {
+            "type": "object",
+            "required": [
+                "pen_name",
+                "token"
+            ],
+            "properties": {
+                "pen_name": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.GoogleRegisterMemberRequest": {
+            "type": "object",
+            "required": [
+                "token",
+                "username"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
                 }
             }
         },
@@ -3993,13 +4112,52 @@ const docTemplate = `{
                 }
             }
         },
-        "user.RegisterRequest": {
+        "user.RegisterAuthorRequest": {
             "type": "object",
             "required": [
                 "email",
                 "first_name",
                 "last_name",
-                "password"
+                "password",
+                "pen_name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "email_verified": {
+                    "type": "boolean"
+                },
+                "first_name": {
+                    "type": "string",
+                    "minLength": 2
+                },
+                "last_name": {
+                    "type": "string",
+                    "minLength": 2
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6
+                },
+                "pen_name": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 1
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.RegisterMemberRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "first_name",
+                "last_name",
+                "password",
+                "username"
             ],
             "properties": {
                 "email": {
@@ -4023,9 +4181,10 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
-                "role_level": {
-                    "description": "Public signup: 1 = ouvinte/usuário, 2 = autor (omitido = 1)",
-                    "type": "integer"
+                "username": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
                 }
             }
         },

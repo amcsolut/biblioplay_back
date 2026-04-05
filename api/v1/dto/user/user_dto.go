@@ -10,15 +10,27 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 }
 
-type RegisterRequest struct {
-	Email         string `json:"email" binding:"required,email"`
-	Password      string `json:"password" binding:"required,min=6"`
-	FirstName     string `json:"first_name" binding:"required,min=2"`
-	LastName      string `json:"last_name" binding:"required,min=2"`
+// RegisterMemberRequest cadastro de leitor/ouvinte (role_level 1 + profile_members).
+type RegisterMemberRequest struct {
+	Email         string  `json:"email" binding:"required,email"`
+	Password      string  `json:"password" binding:"required,min=6"`
+	FirstName     string  `json:"first_name" binding:"required,min=2"`
+	LastName      string  `json:"last_name" binding:"required,min=2"`
 	Phone         *string `json:"phone"`
-	EmailVerified bool   `json:"email_verified"`
-	// Public signup: 1 = ouvinte/usuário, 2 = autor (omitido = 1)
-	RoleLevel *int `json:"role_level"`
+	EmailVerified bool    `json:"email_verified"`
+	Username      string  `json:"username" binding:"required,min=3,max=50"`
+}
+
+// RegisterAuthorRequest cadastro de autor (role_level 2 + profile_authors + communities).
+// Slug do autor e da comunidade é gerado a partir de pen_name (minúsculas, números, hífens).
+type RegisterAuthorRequest struct {
+	Email         string  `json:"email" binding:"required,email"`
+	Password      string  `json:"password" binding:"required,min=6"`
+	FirstName     string  `json:"first_name" binding:"required,min=2"`
+	LastName      string  `json:"last_name" binding:"required,min=2"`
+	Phone         *string `json:"phone"`
+	EmailVerified bool    `json:"email_verified"`
+	PenName       string  `json:"pen_name" binding:"required,min=1,max=200"`
 }
 
 type UpdateUserRequest struct {
@@ -56,8 +68,18 @@ type SocialAuthRequest struct {
 
 type GoogleAuthRequest struct {
 	Token string `json:"token" binding:"required"` // Google ID token ou access token
-	// Usado em POST /auth/register/google: 1 = usuário, 2 = autor (omitido = 1). Ignorado em /auth/google.
-	RoleLevel *int `json:"role_level"`
+}
+
+// GoogleRegisterMemberRequest POST /auth/register/google/member
+type GoogleRegisterMemberRequest struct {
+	Token    string `json:"token" binding:"required"`
+	Username string `json:"username" binding:"required,min=3,max=50"`
+}
+
+// GoogleRegisterAuthorRequest POST /auth/register/google/author
+type GoogleRegisterAuthorRequest struct {
+	Token   string `json:"token" binding:"required"`
+	PenName string `json:"pen_name" binding:"required,min=1,max=200"`
 }
 
 type FacebookAuthRequest struct {
